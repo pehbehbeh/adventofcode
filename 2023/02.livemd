@@ -60,6 +60,7 @@ Kino.FS.file_path("02.txt")
 |> Stream.map(parse_line)
 |> Stream.map(max_cubes)
 |> Enum.reduce(0, fn {_id, cubes}, acc_power ->
-  acc_power + cubes["red"] * cubes["green"] * cubes["blue"]
+  power = Map.values(cubes) |> Enum.reduce(1, &Kernel.*/2)
+  acc_power + power
 end)
 ```
