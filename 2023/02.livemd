@@ -26,24 +26,29 @@ parse_line = fn line ->
       end)
     end)
 
-  {id, sets}
+  {String.to_integer(id), sets}
+end
+
+max_cubes = fn {id, sets} ->
+  result =
+    Enum.reduce(sets, %{}, fn set, acc ->
+      Map.merge(set, acc, fn _k, v1, v2 -> max(v1, v2) end)
+    end)
+
+  {id, result}
 end
 
 Kino.FS.file_path("02.txt")
 |> File.stream!()
 |> Stream.map(parse_line)
-|> Enum.reduce(0, fn {id, sets}, acc ->
-  set_impossible? =
-    Enum.reduce_while(sets, false, fn set, _ ->
-      color_impossible? =
-        Enum.reduce_while(set, false, fn {color, count}, _ ->
-          if count > max[color], do: {:halt, true}, else: {:cont, false}
-        end)
-
-      if color_impossible?, do: {:halt, true}, else: {:cont, false}
+|> Stream.map(max_cubes)
+|> Enum.reduce(0, fn {id, cubes}, acc ->
+  possible? =
+    Enum.reduce_while(cubes, true, fn {color, count}, _ ->
+      if count > max[color], do: {:halt, false}, else: {:cont, true}
     end)
 
-  if set_impossible?, do: acc, else: acc + String.to_integer(id)
+  if possible?, do: acc + id, else: acc
 end)
 ```
 
@@ -53,14 +58,8 @@ end)
 Kino.FS.file_path("02.txt")
 |> File.stream!()
 |> Stream.map(parse_line)
-|> Enum.reduce(0, fn {_id, sets}, acc_power ->
-  cubes =
-    Enum.reduce(sets, %{}, fn set, acc_cubes ->
-      Map.merge(set, acc_cubes, fn _k, v1, v2 ->
-        max(v1, v2)
-      end)
-    end)
-
+|> Stream.map(max_cubes)
+|> Enum.reduce(0, fn {_id, cubes}, acc_power ->
   acc_power + cubes["red"] * cubes["green"] * cubes["blue"]
 end)
 ```
