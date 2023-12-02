@@ -1,0 +1,66 @@
+<!-- livebook:{"file_entries":[{"name":"02.txt","type":"attachment"}]} -->
+
+# Advent of Code 2023 - Day 02
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.11.0"}
+])
+```
+
+## Part 1
+
+```elixir
+max = %{"red" => 12, "green" => 13, "blue" => 14}
+
+parse_line = fn line ->
+  ["Game " <> id, rest] = String.trim(line) |> String.split(": ")
+
+  sets =
+    String.split(rest, "; ")
+    |> Enum.map(fn set ->
+      String.split(set, ", ")
+      |> Enum.into(%{}, fn cubes ->
+        [count, color] = String.split(cubes, " ")
+        {color, String.to_integer(count)}
+      end)
+    end)
+
+  {id, sets}
+end
+
+Kino.FS.file_path("02.txt")
+|> File.stream!()
+|> Stream.map(parse_line)
+|> Enum.reduce(0, fn {id, sets}, acc ->
+  set_impossible? =
+    Enum.reduce_while(sets, false, fn set, _ ->
+      color_impossible? =
+        Enum.reduce_while(set, false, fn {color, count}, _ ->
+          if count > max[color], do: {:halt, true}, else: {:cont, false}
+        end)
+
+      if color_impossible?, do: {:halt, true}, else: {:cont, false}
+    end)
+
+  if set_impossible?, do: acc, else: acc + String.to_integer(id)
+end)
+```
+
+## Part 2
+
+```elixir
+Kino.FS.file_path("02.txt")
+|> File.stream!()
+|> Stream.map(parse_line)
+|> Enum.reduce(0, fn {_id, sets}, acc_power ->
+  cubes =
+    Enum.reduce(sets, %{}, fn set, acc_cubes ->
+      Map.merge(set, acc_cubes, fn _k, v1, v2 ->
+        max(v1, v2)
+      end)
+    end)
+
+  acc_power + cubes["red"] * cubes["green"] * cubes["blue"]
+end)
+```
