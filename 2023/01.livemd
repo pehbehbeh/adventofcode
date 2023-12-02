@@ -1,0 +1,59 @@
+<!-- livebook:{"app_settings":{"access_type":"public","show_source":true,"slug":"aoc-2023-01"},"file_entries":[{"name":"01.txt","type":"attachment"}]} -->
+
+# Advent of Code 2023 - Day 01
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.11.0"}
+])
+```
+
+## Part 1
+
+```elixir
+Kino.FS.file_path("01.txt")
+|> File.stream!()
+|> Stream.map(fn line ->
+  matches =
+    Regex.scan(~r/\d/, line)
+    |> List.flatten()
+
+  first = List.first(matches)
+  last = List.last(matches)
+
+  String.to_integer("#{first}#{last}")
+end)
+|> Enum.sum()
+```
+
+## Part 2
+
+```elixir
+pattern = ~r/(?=(\d|one|two|three|four|five|six|seven|eight|nine))/
+
+Kino.FS.file_path("01.txt")
+|> File.stream!()
+|> Stream.map(fn line ->
+  matches =
+    Regex.scan(pattern, line, capture: :all_but_first)
+    |> List.flatten()
+    |> Enum.map(fn
+      "one" -> "1"
+      "two" -> "2"
+      "three" -> "3"
+      "four" -> "4"
+      "five" -> "5"
+      "six" -> "6"
+      "seven" -> "7"
+      "eight" -> "8"
+      "nine" -> "9"
+      input -> input
+    end)
+
+  first = List.first(matches)
+  last = List.last(matches)
+
+  String.to_integer(first <> last)
+end)
+|> Enum.sum()
+```
