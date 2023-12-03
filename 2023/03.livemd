@@ -43,10 +43,10 @@ symbols =
 ## Part 1
 
 ```elixir
-list_adjecent_numbers = fn x, y, all ->
-  Enum.reduce(all, [], fn {cols, rows, number}, acc ->
-    if x in cols and y in rows, do: [number | acc], else: acc
-  end)
+list_adjecent_numbers = fn x, y, numbers ->
+  numbers
+  |> Stream.filter(fn {cols, rows, _number} -> x in cols and y in rows end)
+  |> Enum.map(fn {_rows, _cols, number} -> number end)
 end
 
 symbols
@@ -61,5 +61,6 @@ symbols
 |> Stream.filter(fn {_x, _y, symbol} -> symbol == "*" end)
 |> Stream.map(fn {x, y, _symbol} -> list_adjecent_numbers.(x, y, numbers) end)
 |> Stream.filter(fn numbers -> Enum.count(numbers) == 2 end)
-|> Enum.reduce(0, fn [a, b], acc -> acc + a * b end)
+|> Stream.map(fn [a, b] -> a * b end)
+|> Enum.sum()
 ```
