@@ -49,22 +49,17 @@ list_adjecent_numbers = fn x, y, all ->
   end)
 end
 
-Enum.reduce(symbols, 0, fn {x, y, _symbol}, acc ->
-  numbers = list_adjecent_numbers.(x, y, numbers)
-  acc + Enum.sum(numbers)
-end)
+symbols
+|> Stream.flat_map(fn {x, y, _symbol} -> list_adjecent_numbers.(x, y, numbers) end)
+|> Enum.sum()
 ```
 
 ## Part 2
 
 ```elixir
-Stream.filter(symbols, fn {_x, _y, symbol} -> symbol == "*" end)
-|> Stream.map(fn {x, y, _symbol} ->
-  numbers = list_adjecent_numbers.(x, y, numbers)
-  {x, y, numbers}
-end)
-|> Stream.filter(fn {_, _, numbers} -> Enum.count(numbers) == 2 end)
-|> Enum.reduce(0, fn {_, _, [first, second]}, acc ->
-  acc + first * second
-end)
+symbols
+|> Stream.filter(fn {_x, _y, symbol} -> symbol == "*" end)
+|> Stream.map(fn {x, y, _symbol} -> list_adjecent_numbers.(x, y, numbers) end)
+|> Stream.filter(fn numbers -> Enum.count(numbers) == 2 end)
+|> Enum.reduce(0, fn [a, b], acc -> acc + a * b end)
 ```
