@@ -57,3 +57,5 @@ Kino.FS.file_path("01.txt")
 end)
 |> Enum.sum()
 ```
+
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F01.livemd)
