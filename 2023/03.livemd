@@ -43,14 +43,14 @@ symbols =
 ## Part 1
 
 ```elixir
-list_adjecent_numbers = fn x, y, numbers ->
+list_adjacent_numbers = fn x, y, numbers ->
   numbers
   |> Stream.filter(fn {cols, rows, _number} -> x in cols and y in rows end)
   |> Enum.map(fn {_rows, _cols, number} -> number end)
 end
 
 symbols
-|> Stream.flat_map(fn {x, y, _symbol} -> list_adjecent_numbers.(x, y, numbers) end)
+|> Stream.flat_map(fn {x, y, _symbol} -> list_adjacent_numbers.(x, y, numbers) end)
 |> Enum.sum()
 ```
 
@@ -59,7 +59,7 @@ symbols
 ```elixir
 symbols
 |> Stream.filter(fn {_x, _y, symbol} -> symbol == "*" end)
-|> Stream.map(fn {x, y, _symbol} -> list_adjecent_numbers.(x, y, numbers) end)
+|> Stream.map(fn {x, y, _symbol} -> list_adjacent_numbers.(x, y, numbers) end)
 |> Stream.filter(fn numbers -> Enum.count(numbers) == 2 end)
 |> Stream.map(fn [a, b] -> a * b end)
 |> Enum.sum()
