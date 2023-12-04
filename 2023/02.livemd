@@ -8,61 +8,61 @@ Mix.install([
 ])
 ```
 
-## Part 1
+## Input
 
 ```elixir
-max = %{"red" => 12, "green" => 13, "blue" => 14}
+input =
+  Kino.FS.file_path("02.txt")
+  |> File.read!()
+  |> String.split("\n")
+```
 
-parse_line = fn line ->
-  ["Game " <> id, rest] = String.trim(line) |> String.split(": ")
+```elixir
+games =
+  input
+  |> Enum.map(fn line ->
+    [_ | rest] = String.split(line, [": ", "; "])
 
-  sets =
-    String.split(rest, "; ")
-    |> Enum.map(fn set ->
+    Enum.map(rest, fn set ->
       String.split(set, ", ")
       |> Enum.into(%{}, fn cubes ->
         [count, color] = String.split(cubes, " ")
         {color, String.to_integer(count)}
       end)
     end)
+  end)
+```
 
-  {String.to_integer(id), sets}
-end
-
-max_cubes = fn {id, sets} ->
-  result =
+```elixir
+max_cubes =
+  games
+  |> Enum.map(fn sets ->
     Enum.reduce(sets, %{}, fn set, acc ->
       Map.merge(set, acc, fn _k, v1, v2 -> max(v1, v2) end)
     end)
+  end)
+```
 
-  {id, result}
-end
+## Part 1
 
-Kino.FS.file_path("02.txt")
-|> File.stream!()
-|> Stream.map(parse_line)
-|> Stream.map(max_cubes)
-|> Enum.reduce(0, fn {id, cubes}, acc ->
-  possible? =
-    Enum.reduce_while(cubes, true, fn {color, count}, _ ->
-      if count > max[color], do: {:halt, false}, else: {:cont, true}
-    end)
+```elixir
+max = %{"red" => 12, "green" => 13, "blue" => 14}
 
-  if possible?, do: acc + id, else: acc
+max_cubes
+|> Stream.with_index(1)
+|> Stream.reject(fn {cubes, _i} ->
+  Enum.any?(cubes, fn {color, count} -> count > max[color] end)
 end)
+|> Stream.map(fn {_cubes, i} -> i end)
+|> Enum.sum()
 ```
 
 ## Part 2
 
 ```elixir
-Kino.FS.file_path("02.txt")
-|> File.stream!()
-|> Stream.map(parse_line)
-|> Stream.map(max_cubes)
-|> Enum.reduce(0, fn {_id, cubes}, acc_power ->
-  power = Map.values(cubes) |> Enum.reduce(1, &Kernel.*/2)
-  acc_power + power
-end)
+max_cubes
+|> Stream.map(fn cubes -> Map.values(cubes) |> Enum.product() end)
+|> Enum.sum()
 ```
 
 [![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F02.livemd)
