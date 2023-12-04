@@ -18,17 +18,13 @@ input =
 ```
 
 ```elixir
-scan = fn input ->
-  Regex.scan(~r/\d+/, input)
-  |> List.flatten()
-  |> MapSet.new()
-end
+split = fn input -> String.split(input, " ", trim: true) end
 
 match_counts =
   input
   |> Stream.map(fn line -> String.split(line, [": ", " | "]) end)
-  |> Stream.map(fn [_card, left, right] -> {scan.(left), scan.(right)} end)
-  |> Stream.map(fn {winners, numbers} -> MapSet.intersection(numbers, winners) end)
+  |> Stream.map(fn [_card, left, right] -> {split.(left), split.(right)} end)
+  |> Stream.map(fn {winners, numbers} -> winners -- winners -- numbers end)
   |> Stream.map(fn matches -> Enum.count(matches) end)
   |> Enum.with_index(1)
 ```
