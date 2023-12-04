@@ -1,0 +1,61 @@
+<!-- livebook:{"file_entries":[{"name":"04.txt","type":"attachment"}]} -->
+
+# Advent of Code 2023 - Day 04
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.11.0"}
+])
+```
+
+## Input
+
+```elixir
+input =
+  Kino.FS.file_path("04.txt")
+  |> File.read!()
+  |> String.split("\n")
+```
+
+```elixir
+scan = fn input ->
+  Regex.scan(~r/\d+/, input)
+  |> List.flatten()
+  |> MapSet.new()
+end
+
+match_counts =
+  input
+  |> Stream.map(fn line -> String.split(line, [": ", " | "]) end)
+  |> Stream.map(fn [_card, left, right] -> {scan.(left), scan.(right)} end)
+  |> Stream.map(fn {winners, numbers} -> MapSet.intersection(numbers, winners) end)
+  |> Enum.map(fn matches -> Enum.count(matches) end)
+```
+
+## Part 1
+
+```elixir
+match_counts
+|> Stream.filter(fn count -> count > 0 end)
+|> Stream.map(fn count -> Integer.pow(2, count - 1) end)
+|> Enum.sum()
+```
+
+## Part 2
+
+```elixir
+init_copies =
+  Enum.zip(1..Enum.count(match_counts), Stream.cycle([1]))
+  |> Enum.into(%{})
+
+for {count, i} <- Enum.with_index(match_counts, 1),
+    count > 0,
+    j <- (i + 1)..(i + count),
+    reduce: init_copies do
+  acc -> Map.put(acc, j, acc[j] + acc[i])
+end
+|> Map.values()
+|> Enum.sum()
+```
+
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F04.livemd)
