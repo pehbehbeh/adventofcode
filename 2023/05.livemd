@@ -54,4 +54,6 @@ seeds
 |> Enum.min()
 ```
 
-<!-- livebook:{"offset":1243,"stamp":{"token":"XCP.aF768ZMQnP03Q3-7WfdR6zYaGS9GfLZWI5HndpifC3aNrsouNku8goCsd8t0qK3AYO0Esc3LIgAfLf6duPMNJmtD4J9VMBT_hGh9HuJ59ekYoqdAyhw","version":2}} -->
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F05.livemd)
+
+<!-- livebook:{"offset":1420,"stamp":{"token":"XCP.T6s34926ZIeiP9I3CkWe_FwW-7hAjJFD8BTpxjSPBqpJ0lFlR9bmVWdYLTSIfaiIEc7MJfTvIMvN_wP6zdtpp_LPNlZy1uQE2TZnKtoe8V9Ov3drslc","version":2}} -->
