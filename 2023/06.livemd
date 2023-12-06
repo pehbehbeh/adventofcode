@@ -1,0 +1,78 @@
+<!-- livebook:{"file_entries":[{"name":"04.txt","type":"attachment"}]} -->
+
+# Advent of Code 2023 - Day 06
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.11.0"},
+  {:kino_aoc, github: "ljgago/kino_aoc"},
+  {:bisect, "~> 0.4.0"}
+])
+```
+
+## Input
+
+<!-- livebook:{"attrs":{"assign_to":"puzzle_input","day":"6","session_secret":"AOC_SESSION","year":"2023"},"chunks":null,"kind":"Elixir.KinoAOC.HelperCell","livebook_object":"smart_cell"} -->
+
+```elixir
+{:ok, puzzle_input} =
+  KinoAOC.download_puzzle("2023", "6", System.fetch_env!("LB_AOC_SESSION"))
+```
+
+```elixir
+races =
+  puzzle_input
+  |> String.split("\n")
+  |> Enum.map(fn input ->
+    Regex.scan(~r/\d+/, input)
+    |> List.flatten()
+    |> Enum.map(&String.to_integer/1)
+  end)
+  |> Enum.zip()
+```
+
+## Part 1
+
+```elixir
+is_win? = fn time, record, wait ->
+  (time - wait) * wait > record
+end
+
+count_wins = fn {time, record} ->
+  Enum.reduce(0..time, 0, fn wait, wins ->
+    if is_win?.(time, record, wait), do: wins + 1, else: wins
+  end)
+end
+
+races
+|> Stream.map(count_wins)
+|> Enum.product()
+```
+
+## Part 2
+
+```elixir
+[time, record] =
+  races
+  |> Enum.unzip()
+  |> Tuple.to_list()
+  |> Enum.map(&Enum.join/1)
+  |> Enum.map(&String.to_integer/1)
+```
+
+```elixir
+half = ceil(time / 2)
+
+range_a = Range.to_list(0..half)
+range_b = Range.to_list(time..half)
+
+a = Bisect.search(range_a, fn wait -> is_win?.(time, record, wait) end)
+b = Bisect.search(range_b, fn wait -> is_win?.(time, record, wait) end)
+
+Enum.at(range_a, a)..Enum.at(range_b, b)
+|> Range.size()
+```
+
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F06.livemd)
+
+<!-- livebook:{"offset":1687,"stamp":{"token":"XCP.prY_Vj7RrRWNrj4R4gqyhqmdPT4U_TfIwvCC1Pj-Cb4UPTBZ7Mdn4pkrrkf7gnBq554x4orWCNE0bEy6c8DKOJX1ReIcrTXDiguZ005GinY6OLxTDR4","version":2}} -->
