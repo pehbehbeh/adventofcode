@@ -1,27 +1,27 @@
-<!-- livebook:{"file_entries":[{"name":"04.txt","type":"attachment"}]} -->
-
 # Advent of Code 2023 - Day 04
 
 ```elixir
 Mix.install([
-  {:kino, "~> 0.11.0"}
+  {:kino, "~> 0.11.0"},
+  {:kino_aoc, github: "ljgago/kino_aoc"}
 ])
 ```
 
 ## Input
 
+<!-- livebook:{"attrs":{"assign_to":"puzzle_input","day":"4","session_secret":"AOC_SESSION","year":"2023"},"chunks":null,"kind":"Elixir.KinoAOC.HelperCell","livebook_object":"smart_cell"} -->
+
 ```elixir
-input =
-  Kino.FS.file_path("04.txt")
-  |> File.read!()
-  |> String.split("\n")
+{:ok, puzzle_input} =
+  KinoAOC.download_puzzle("2023", "4", System.fetch_env!("LB_AOC_SESSION"))
 ```
 
 ```elixir
 split = fn input -> String.split(input, " ", trim: true) end
 
 match_counts =
-  input
+  puzzle_input
+  |> String.split("\n")
   |> Stream.map(fn line -> String.split(line, [": ", " | "]) end)
   |> Stream.map(fn [_card, left, right] -> {split.(left), split.(right)} end)
   |> Stream.map(fn {winners, numbers} -> winners -- winners -- numbers end)
@@ -52,3 +52,5 @@ end
 ```
 
 [![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F04.livemd)
+
+<!-- livebook:{"offset":1457,"stamp":{"token":"XCP.dYFingvHve434qPWVDzZ-nvaYOh1VoFRrAEU7WwQ2qdItNRm8uzH0VxkjR3Nj3zR5clskatYHcWdIBVrTTdI1PneEszNh9SBIWZCyatdy-opETQzMQA","version":2}} -->

@@ -1,25 +1,25 @@
-<!-- livebook:{"file_entries":[{"name":"02.txt","type":"attachment"}]} -->
-
 # Advent of Code 2023 - Day 02
 
 ```elixir
 Mix.install([
-  {:kino, "~> 0.11.0"}
+  {:kino, "~> 0.11.0"},
+  {:kino_aoc, github: "ljgago/kino_aoc"}
 ])
 ```
 
 ## Input
 
+<!-- livebook:{"attrs":{"assign_to":"puzzle_input","day":"2","session_secret":"AOC_SESSION","year":"2023"},"chunks":null,"kind":"Elixir.KinoAOC.HelperCell","livebook_object":"smart_cell"} -->
+
 ```elixir
-input =
-  Kino.FS.file_path("02.txt")
-  |> File.read!()
-  |> String.split("\n")
+{:ok, puzzle_input} =
+  KinoAOC.download_puzzle("2023", "2", System.fetch_env!("LB_AOC_SESSION"))
 ```
 
 ```elixir
 games =
-  input
+  puzzle_input
+  |> String.split("\n")
   |> Enum.map(fn line ->
     [_ | rest] = String.split(line, [": ", "; "])
 
@@ -66,3 +66,5 @@ max_cubes
 ```
 
 [![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F02.livemd)
+
+<!-- livebook:{"offset":1536,"stamp":{"token":"XCP.9bk7xgJn7ZGnA5Zhe3tRWZky82sp7cHse8bhPGoO_ZHGr1huf6NTz1ZPStS0g77uNxHG_zwUFO8L6XKtWskkjRg3sqfljq-GhkFe_y6XDd809ic16u8","version":2}} -->
