@@ -1,0 +1,56 @@
+<!-- livebook:{"file_entries":[{"name":"04.txt","type":"attachment"}]} -->
+
+# Advent of Code 2023 - Day 05
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.11.0"},
+  {:kino_aoc, github: "ljgago/kino_aoc"}
+])
+```
+
+## Input
+
+<!-- livebook:{"attrs":{"assign_to":"input","day":"5","session_secret":"AOC_SESSION","year":"2023"},"chunks":null,"kind":"Elixir.KinoAOC.HelperCell","livebook_object":"smart_cell"} -->
+
+```elixir
+{:ok, input} = KinoAOC.download_puzzle("2023", "5", System.fetch_env!("LB_AOC_SESSION"))
+```
+
+```elixir
+[seeds | rest] =
+  input
+  |> String.split(["\n\n", ":"])
+  |> Enum.drop_every(2)
+  |> Enum.map(fn line ->
+    Regex.scan(~r/\d+/, line)
+    |> List.flatten()
+    |> Enum.map(&String.to_integer/1)
+  end)
+```
+
+```elixir
+mappers =
+  for raw <- rest do
+    Enum.chunk_every(raw, 3)
+    |> Enum.map(fn [d1, s1, length] -> {s1..(s1 + length - 1), _diff = s1 - d1} end)
+    |> Enum.sort_by(fn {s1.._, _} -> s1 end)
+  end
+```
+
+## Part 1
+
+```elixir
+closest_destination = fn seed ->
+  Enum.reduce(mappers, seed, fn mapper, pos ->
+    Enum.find(mapper, {pos..pos, 0}, fn {s, _diff} -> pos in s end)
+    |> then(fn {_s, diff} -> pos - diff end)
+  end)
+end
+
+seeds
+|> Stream.map(closest_destination)
+|> Enum.min()
+```
+
+<!-- livebook:{"offset":1220,"stamp":{"token":"XCP.Ydw0ku0kBC63Wcrr8tLbJ2wooFIPEGXMbbpRuxvA8D5OQAzWeO3wThKmrY19SJYLVW04TpyhbmIuuXnb2843i84ier4iXlZB0zs_YCENOXR2SyH8FDU","version":2}} -->
