@@ -37,25 +37,25 @@ init_df =
 ```
 
 ```elixir
-hands_to_cards = fn hands, j_value ->
-  hands
-  |> Stream.map(fn hand ->
-    String.split(hand, "", trim: true)
-    |> Stream.map(fn
-      "A" -> 14
-      "K" -> 13
-      "Q" -> 12
-      "J" -> j_value
-      "T" -> 10
-      x -> String.to_integer(x)
-    end)
+hand_to_cards = fn hand, j_value ->
+  hand
+  |> String.split("", trim: true)
+  |> Enum.map(fn
+    "A" -> 14
+    "K" -> 13
+    "Q" -> 12
+    "J" -> j_value
+    "T" -> 10
+    x -> String.to_integer(x)
   end)
-  |> Enum.zip_with(&Function.identity/1)
 end
 
 put_cards = fn df, j_value ->
-  hands = Series.to_list(df["hand"])
-  [c1, c2, c3, c4, c5] = hands_to_cards.(hands, j_value)
+  [c1, c2, c3, c4, c5] =
+    df["hand"]
+    |> Series.to_list()
+    |> Stream.map(&hand_to_cards.(&1, j_value))
+    |> Enum.zip_with(&Function.identity/1)
 
   df
   |> DF.put(:c1, Series.from_list(c1))
@@ -177,4 +177,4 @@ DF.summarise(results, total_winnings: sum(winnings))
 
 [![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F07.livemd)
 
-<!-- livebook:{"offset":5063,"stamp":{"token":"XCP.TruIiXvS-BtyToAASttZ6Ms4mATW9xvDIMiQS64REyUamIHNZvFWadLqUzBlHovarQYrB1n4AXmJFmPBIShCpzHO6pNNugjjs3v1HEjHOVmKIFarCS4","version":2}} -->
+<!-- livebook:{"offset":5023,"stamp":{"token":"XCP.RhVfrUq8ev0dLWk9mfQ22CLvyDgJRRbLtm4MDUzUTfBVFoVmmquyGCTGunzvscDMVgOOF6JLGwwgBptnztcXxPoaDDaBoUmqr3AxVCEgS31p4UO9My0","version":2}} -->
