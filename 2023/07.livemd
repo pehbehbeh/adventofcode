@@ -39,9 +39,9 @@ init_df =
 ```elixir
 hands_to_cards = fn hands, j_value ->
   hands
-  |> Enum.map(fn hand ->
+  |> Stream.map(fn hand ->
     String.split(hand, "", trim: true)
-    |> Enum.map(fn
+    |> Stream.map(fn
       "A" -> 14
       "K" -> 13
       "Q" -> 12
@@ -71,9 +71,9 @@ put_strength = fn df, mapper ->
     |> DF.select(["c1", "c2", "c3", "c4", "c5"])
     |> DF.to_columns()
     |> Map.values()
-    |> Enum.zip_with(&Function.identity/1)
-    |> Enum.map(&Enum.sort(&1, :desc))
-    |> Enum.map(mapper)
+    |> Stream.zip_with(&Function.identity/1)
+    |> Stream.map(&Enum.sort(&1, :desc))
+    |> Stream.map(mapper)
     |> Enum.unzip()
 
   df
@@ -177,4 +177,4 @@ DF.summarise(results, total_winnings: sum(winnings))
 
 [![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F07.livemd)
 
-<!-- livebook:{"offset":5053,"stamp":{"token":"XCP.NcJns34xWLg9rpkoAINP6pZapjIAZcao0Xlt1iY-ZFutIJR91wuBpFEHMeF7UHKtZllP8UfJepgsnMOTZk8CvzXMfHIbuTajqzPh0lXuM1w1jNZTCrU","version":2}} -->
+<!-- livebook:{"offset":5063,"stamp":{"token":"XCP.TruIiXvS-BtyToAASttZ6Ms4mATW9xvDIMiQS64REyUamIHNZvFWadLqUzBlHovarQYrB1n4AXmJFmPBIShCpzHO6pNNugjjs3v1HEjHOVmKIFarCS4","version":2}} -->
