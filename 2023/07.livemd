@@ -83,12 +83,11 @@ end
 
 put_ranks = fn df ->
   total = Series.size(df["hand"])
-  ranks = Enum.to_list(1..total)
+  ranks = Enum.to_list(total..1)
 
   df
   |> DF.arrange(desc: strength, desc: c1, desc: c2, desc: c3, desc: c4, desc: c5)
   |> DF.put(:rank, Series.from_list(ranks))
-  |> DF.mutate_with(&[rank: Series.subtract(total + 1, &1["rank"])])
   |> DF.mutate_with(&[winnings: Series.multiply(&1["rank"], &1["bid"])])
 end
 ```
@@ -178,4 +177,4 @@ DF.summarise(results, total_winnings: sum(winnings))
 
 [![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F07.livemd)
 
-<!-- livebook:{"offset":5116,"stamp":{"token":"XCP.da2Fh26_151nFW4sAEHNDPuwFoKi35A-rrVnSZ7R9FSruiyTm57pobO6cg_HgC-KR6UBjeKsfvu8di8vPVd8RTiaQMI6hDOIoTE_SzK-87IkTEp1Pb8","version":2}} -->
+<!-- livebook:{"offset":5047,"stamp":{"token":"XCP.7TAzjT-v49Kq_uveF3Cy2k1wH9Gqx_aHC-QAHD4NoNONTMSOLbA_pMb7_oe4slwsOH6RJP0cb9KxmXenoAlOkcLjhj6QuTwTt4AyL-IA6135tAyTt_k","version":2}} -->
