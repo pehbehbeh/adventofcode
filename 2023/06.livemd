@@ -61,18 +61,11 @@ races
 ```
 
 ```elixir
-half = ceil(time / 2)
-
-range_a = Range.to_list(0..half)
-range_b = Range.to_list(time..half)
-
-a = Bisect.search(range_a, fn wait -> is_win?.(time, record, wait) end)
-b = Bisect.search(range_b, fn wait -> is_win?.(time, record, wait) end)
-
-Enum.at(range_a, a)..Enum.at(range_b, b)
-|> Range.size()
+left = Range.to_list(0..ceil(time / 2))
+first_win = Bisect.search(left, fn wait -> is_win?.(time, record, wait) end)
+time - first_win * 2 + 1
 ```
 
 [![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F06.livemd)
 
-<!-- livebook:{"offset":1687,"stamp":{"token":"XCP.prY_Vj7RrRWNrj4R4gqyhqmdPT4U_TfIwvCC1Pj-Cb4UPTBZ7Mdn4pkrrkf7gnBq554x4orWCNE0bEy6c8DKOJX1ReIcrTXDiguZ005GinY6OLxTDR4","version":2}} -->
+<!-- livebook:{"offset":1534,"stamp":{"token":"XCP.ah_OPc6vIUyWhdZEUZ87yOYIV4sWt2C6-wNgy-CldyxnS_er3XIRrInsDcbRkVSsudAh0MaPH3mXmezJfTmEBk2znMOYyp81gWQPKXkkKEZhcUDl7yk","version":2}} -->
