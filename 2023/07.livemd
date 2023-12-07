@@ -65,7 +65,7 @@ put_cards = fn df, j_value ->
   |> DF.put(:c5, Series.from_list(c5))
 end
 
-put_strengths = fn df, mapper ->
+put_strength = fn df, mapper ->
   {strengths, types} =
     df
     |> DF.select(["c1", "c2", "c3", "c4", "c5"])
@@ -81,14 +81,14 @@ put_strengths = fn df, mapper ->
   |> DF.put(:strength, Series.from_list(strengths))
 end
 
-put_ranks = fn df ->
+put_rank_and_winnings = fn df ->
   total = Series.size(df["hand"])
   ranks = Enum.to_list(total..1)
 
   df
   |> DF.arrange(desc: strength, desc: c1, desc: c2, desc: c3, desc: c4, desc: c5)
   |> DF.put(:rank, Series.from_list(ranks))
-  |> DF.mutate_with(&[winnings: Series.multiply(&1["rank"], &1["bid"])])
+  |> DF.mutate(winnings: multiply(rank, bid))
 end
 ```
 
@@ -98,7 +98,7 @@ end
 results =
   init_df
   |> put_cards.(11)
-  |> put_strengths.(fn
+  |> put_strength.(fn
     [a, a, a, a, a] -> {6, "five_of_a_kind"}
     [a, a, a, a, _] -> {5, "four_of_a_kind"}
     [_, a, a, a, a] -> {5, "four_of_a_kind"}
@@ -116,7 +116,7 @@ results =
     [_, _, _, a, a] -> {1, "one_pair"}
     [_, _, _, _, _] -> {0, "high_card"}
   end)
-  |> put_ranks.()
+  |> put_rank_and_winnings.()
   |> DF.select(["hand", "type", "rank", "bid", "winnings"])
 ```
 
@@ -130,7 +130,7 @@ DF.summarise(results, total_winnings: sum(winnings))
 results =
   init_df
   |> put_cards.(1)
-  |> put_strengths.(fn
+  |> put_strength.(fn
     [a, a, a, a, a] -> {6, "five_of_a_kind"}
     [a, a, a, a, 1] -> {6, "five_of_a_kind"}
     [a, a, a, 1, 1] -> {6, "five_of_a_kind"}
@@ -167,7 +167,7 @@ results =
     [_, _, _, _, 1] -> {1, "one_pair"}
     [_, _, _, _, _] -> {0, "high_card"}
   end)
-  |> put_ranks.()
+  |> put_rank_and_winnings.()
   |> DF.select(["hand", "type", "rank", "bid", "winnings"])
 ```
 
@@ -177,4 +177,4 @@ DF.summarise(results, total_winnings: sum(winnings))
 
 [![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F07.livemd)
 
-<!-- livebook:{"offset":5047,"stamp":{"token":"XCP.7TAzjT-v49Kq_uveF3Cy2k1wH9Gqx_aHC-QAHD4NoNONTMSOLbA_pMb7_oe4slwsOH6RJP0cb9KxmXenoAlOkcLjhj6QuTwTt4AyL-IA6135tAyTt_k","version":2}} -->
+<!-- livebook:{"offset":5053,"stamp":{"token":"XCP.NcJns34xWLg9rpkoAINP6pZapjIAZcao0Xlt1iY-ZFutIJR91wuBpFEHMeF7UHKtZllP8UfJepgsnMOTZk8CvzXMfHIbuTajqzPh0lXuM1w1jNZTCrU","version":2}} -->
