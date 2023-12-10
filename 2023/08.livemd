@@ -1,0 +1,67 @@
+<!-- livebook:{"file_entries":[{"name":"04.txt","type":"attachment"}]} -->
+
+# Advent of Code 2023 - Day 08
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.11.0"},
+  {:kino_aoc, github: "ljgago/kino_aoc"}
+])
+```
+
+## Input
+
+<!-- livebook:{"attrs":{"assign_to":"puzzle_input","day":"8","session_secret":"AOC_SESSION","year":"2023"},"chunks":null,"kind":"Elixir.KinoAOC.HelperCell","livebook_object":"smart_cell"} -->
+
+```elixir
+{:ok, puzzle_input} =
+  KinoAOC.download_puzzle("2023", "8", System.fetch_env!("LB_AOC_SESSION"))
+```
+
+```elixir
+[first | rest] = String.split(puzzle_input, "\n", trim: true)
+```
+
+```elixir
+instructions = String.split(first, "", trim: true)
+```
+
+```elixir
+network =
+  rest
+  |> Enum.map(fn line ->
+    Regex.scan(~r/([A-Z]){3}/, line, capture: :first)
+    |> List.flatten()
+  end)
+  |> Map.new(fn [k, l, r] -> {k, %{"L" => l, "R" => r}} end)
+```
+
+## Part 1
+
+```elixir
+count_steps_while = fn start, while_fun ->
+  instructions
+  |> Stream.cycle()
+  |> Enum.reduce_while({0, start}, fn instruction, {count, next} ->
+    steps = count + 1
+    next = network[next][instruction]
+    if while_fun.(next), do: {:halt, steps}, else: {:cont, {steps, next}}
+  end)
+end
+
+count_steps_while.("AAA", &String.equivalent?(&1, "ZZZ"))
+```
+
+## Part 2
+
+```elixir
+network
+|> Map.keys()
+|> Enum.filter(&String.ends_with?(&1, "A"))
+|> Enum.map(fn start -> count_steps_while.(start, &String.ends_with?(&1, "Z")) end)
+|> Enum.reduce(fn a, b -> div(a * b, Integer.gcd(a, b)) end)
+```
+
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F08.livemd)
+
+<!-- livebook:{"offset":1654,"stamp":{"token":"XCP.ruRSjSzhI-YxromkP8LLa9szAERTpZ5XmS7s4GlJwhclS591CMzozWgntoV1dJuxFfAT33xeeBVrxdYYau9HfXCn0IdVT76pWhA1X5S6MTxNucz_c-Q","version":2}} -->
