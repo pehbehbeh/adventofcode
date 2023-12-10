@@ -1,0 +1,64 @@
+<!-- livebook:{"file_entries":[{"name":"04.txt","type":"attachment"}]} -->
+
+# Advent of Code 2023 - Day 09
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.11.0"},
+  {:kino_aoc, github: "ljgago/kino_aoc"}
+])
+```
+
+## Input
+
+<!-- livebook:{"attrs":{"assign_to":"puzzle_input","day":"9","session_secret":"AOC_SESSION","year":"2023"},"chunks":null,"kind":"Elixir.KinoAOC.HelperCell","livebook_object":"smart_cell"} -->
+
+```elixir
+{:ok, puzzle_input} =
+  KinoAOC.download_puzzle("2023", "9", System.fetch_env!("LB_AOC_SESSION"))
+```
+
+```elixir
+history =
+  puzzle_input
+  |> String.split("\n", trim: true)
+  |> Enum.map(fn line ->
+    String.split(line, " ", trim: true)
+    |> Enum.map(&String.to_integer(&1))
+  end)
+```
+
+## Part 1
+
+```elixir
+extrapolate = fn input, map_fun, reduce_fun ->
+  Stream.map(input, fn h ->
+    Stream.unfold(h, fn row ->
+      next_row =
+        for i <- 1..(Enum.count(row) - 1) do
+          Enum.at(row, i) - Enum.at(row, i - 1)
+        end
+
+      unless Enum.all?(row, &(&1 == 0)), do: {map_fun.(row), next_row}
+    end)
+    |> Enum.reverse()
+    |> Enum.reduce(0, reduce_fun)
+  end)
+end
+
+history
+|> extrapolate.(&List.last/1, &Kernel.+/2)
+|> Enum.sum()
+```
+
+## Part 2
+
+```elixir
+history
+|> extrapolate.(&List.first/1, fn a, b -> b * -1 + a end)
+|> Enum.sum()
+```
+
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F09.livemd)
+
+<!-- livebook:{"offset":1459,"stamp":{"token":"XCP.xLNREzccPdfpDnwxR04jhKfG1yqFaUbwJJWcbyS2DaDAdYu8WELs2aY6cOqoA0wu5zlQkvo52QmMxygKUdiq2NqDTXXXSA35E0C5AFrZkbCEuw1P6k4","version":2}} -->
