@@ -1,0 +1,104 @@
+<!-- livebook:{"file_entries":[{"name":"04.txt","type":"attachment"}]} -->
+
+# Advent of Code 2023 - Day 10
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.11.0"},
+  {:kino_aoc, github: "ljgago/kino_aoc"},
+  {:libgraph, "~> 0.16.0"},
+  {:topo, "~> 1.0"}
+])
+```
+
+## Input
+
+<!-- livebook:{"attrs":{"assign_to":"puzzle_input","day":"10","session_secret":"AOC_SESSION","year":"2023"},"chunks":null,"kind":"Elixir.KinoAOC.HelperCell","livebook_object":"smart_cell"} -->
+
+```elixir
+{:ok, puzzle_input} =
+  KinoAOC.download_puzzle("2023", "10", System.fetch_env!("LB_AOC_SESSION"))
+```
+
+```elixir
+tiles =
+  puzzle_input
+  |> String.split("\n", trim: true)
+  |> Enum.map(&String.split(&1, "", trim: true))
+```
+
+```elixir
+grid =
+  for {row, y} <- Enum.with_index(tiles),
+      {tile, x} <- Enum.with_index(row),
+      into: %{},
+      do: {{x, y}, tile}
+```
+
+```elixir
+n = fn {x, y} -> {x, y - 1} end
+e = fn {x, y} -> {x + 1, y} end
+s = fn {x, y} -> {x, y + 1} end
+w = fn {x, y} -> {x - 1, y} end
+
+adjacents = fn
+  _p, "." -> []
+  p, "|" -> [n.(p), s.(p)]
+  p, "-" -> [w.(p), e.(p)]
+  p, "L" -> [n.(p), e.(p)]
+  p, "J" -> [n.(p), w.(p)]
+  p, "7" -> [w.(p), s.(p)]
+  p, "F" -> [e.(p), s.(p)]
+  p, "S" -> [n.(p), e.(p), s.(p), w.(p)]
+end
+
+connections =
+  for {{x, y}, tile} <- grid, reduce: Graph.new() do
+    acc ->
+      adjacents.({x, y}, tile)
+      |> Enum.reduce(acc, fn a, acc -> Graph.add_edge(acc, {x, y}, a) end)
+  end
+
+graph =
+  connections
+  |> Graph.edges()
+  |> Enum.reduce(Graph.new(), fn %{v1: v1, v2: v2}, g ->
+    if Graph.edges(connections, v2, v1) == [] do
+      g
+    else
+      Graph.add_edge(g, v1, v2)
+    end
+  end)
+```
+
+```elixir
+{start, _} = Enum.find(grid, fn {_, tile} -> tile == "S" end)
+```
+
+```elixir
+loop =
+  Graph.components(graph)
+  |> Enum.find(fn c -> Enum.any?(c, fn pos -> pos == start end) end)
+```
+
+## Part 1
+
+```elixir
+length(loop) |> div(2)
+```
+
+## Part 2
+
+```elixir
+geoloop = %Geo.Polygon{coordinates: [loop]}
+
+grid
+|> Stream.reject(fn {pos, _} -> pos in loop end)
+|> Enum.reduce(0, fn {pos, _}, count ->
+  if Topo.contains?(geoloop, pos), do: count + 1, else: count
+end)
+```
+
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F10.livemd)
+
+<!-- livebook:{"offset":2278,"stamp":{"token":"XCP.ehg-apAI-j8Jv7QzMYvxvpNvXkfgb1Lbhvu55RJAdt81reBEDcmnyVVQVfRoXRhPRpQ0nzkacT2hIO-HBXuTNrwZZm517XrbNsJLZblGPYsJJLfwiCE","version":2}} -->
