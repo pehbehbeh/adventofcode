@@ -36,6 +36,10 @@ grid =
 ```
 
 ```elixir
+{start, _} = Enum.find(grid, fn {_, tile} -> tile == "S" end)
+```
+
+```elixir
 n = fn {x, y} -> {x, y - 1} end
 e = fn {x, y} -> {x + 1, y} end
 s = fn {x, y} -> {x, y + 1} end
@@ -43,42 +47,31 @@ w = fn {x, y} -> {x - 1, y} end
 
 adjacents = fn
   _p, "." -> []
+  _p, "S" -> []
   p, "|" -> [n.(p), s.(p)]
   p, "-" -> [w.(p), e.(p)]
   p, "L" -> [n.(p), e.(p)]
   p, "J" -> [n.(p), w.(p)]
   p, "7" -> [w.(p), s.(p)]
   p, "F" -> [e.(p), s.(p)]
-  p, "S" -> [n.(p), e.(p), s.(p), w.(p)]
 end
 
-connections =
+graph =
   for {{x, y}, tile} <- grid, reduce: Graph.new() do
     acc ->
       adjacents.({x, y}, tile)
       |> Enum.reduce(acc, fn a, acc -> Graph.add_edge(acc, {x, y}, a) end)
   end
-
-graph =
-  connections
-  |> Graph.edges()
-  |> Enum.reduce(Graph.new(), fn %{v1: v1, v2: v2}, g ->
-    if Graph.edges(connections, v2, v1) == [] do
-      g
-    else
-      Graph.add_edge(g, v1, v2)
-    end
-  end)
-```
-
-```elixir
-{start, _} = Enum.find(grid, fn {_, tile} -> tile == "S" end)
 ```
 
 ```elixir
 loop =
-  Graph.components(graph)
-  |> Enum.find(fn c -> Enum.any?(c, fn pos -> pos == start end) end)
+  graph
+  |> Graph.in_neighbors(start)
+  |> Enum.reduce(graph, fn n, g ->
+    Graph.add_edge(g, start, n)
+  end)
+  |> Graph.reachable_neighbors([start])
 ```
 
 ## Part 1
@@ -93,12 +86,12 @@ length(loop) |> div(2)
 geoloop = %Geo.Polygon{coordinates: [loop]}
 
 grid
-|> Stream.reject(fn {pos, _} -> pos in loop end)
-|> Enum.reduce(0, fn {pos, _}, count ->
-  if Topo.contains?(geoloop, pos), do: count + 1, else: count
-end)
+|> Map.keys()
+|> Stream.reject(&(&1 in loop))
+|> Stream.map(&Topo.contains?(geoloop, &1))
+|> Enum.count(& &1)
 ```
 
 [![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F10.livemd)
 
-<!-- livebook:{"offset":2278,"stamp":{"token":"XCP.ehg-apAI-j8Jv7QzMYvxvpNvXkfgb1Lbhvu55RJAdt81reBEDcmnyVVQVfRoXRhPRpQ0nzkacT2hIO-HBXuTNrwZZm517XrbNsJLZblGPYsJJLfwiCE","version":2}} -->
+<!-- livebook:{"offset":2047,"stamp":{"token":"XCP.IUA66zPa0HOWmxnqM1G-BLgH7uLHDi54oe0YAORMjyqgHphWdXkRzjsv6prktqxmIkSdfsQdYiIt3YEScDPYJNzIdR3gMX-_aLtO-PcwxFuoyqCmPVA","version":2}} -->
