@@ -1,0 +1,102 @@
+<!-- livebook:{"file_entries":[{"name":"04.txt","type":"attachment"}]} -->
+
+# Advent of Code 2023 - Day 11
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.11.0"},
+  {:kino_aoc, github: "ljgago/kino_aoc"}
+])
+```
+
+## Input
+
+<!-- livebook:{"attrs":{"assign_to":"puzzle_input","day":"11","session_secret":"AOC_SESSION","year":"2023"},"chunks":null,"kind":"Elixir.KinoAOC.HelperCell","livebook_object":"smart_cell"} -->
+
+```elixir
+{:ok, puzzle_input} =
+  KinoAOC.download_puzzle("2023", "11", System.fetch_env!("LB_AOC_SESSION"))
+```
+
+```elixir
+universe =
+  puzzle_input
+  |> String.split("\n", trim: true)
+  |> Enum.map(&String.split(&1, "", trim: true))
+```
+
+```elixir
+expand_rows = fn input ->
+  input
+  |> Enum.flat_map(fn line ->
+    if Enum.all?(line, &(&1 == "." or &1 == "X")) do
+      [Enum.map(0..Enum.count(line), fn _ -> "X" end)]
+    else
+      [line]
+    end
+  end)
+end
+
+to_map = fn list ->
+  list
+  |> Enum.with_index()
+  |> Map.new(fn {v, k} -> {k, v} end)
+end
+
+universe =
+  universe
+  |> expand_rows.()
+  |> Enum.zip_with(&Function.identity/1)
+  |> expand_rows.()
+  |> Enum.zip_with(&Function.identity/1)
+  |> Enum.map(to_map)
+  |> to_map.()
+```
+
+```elixir
+galaxies =
+  for {y, row} <- universe, {x, space} <- row, reduce: [] do
+    acc -> if space == "#", do: [{x, y} | acc], else: acc
+  end
+```
+
+```elixir
+pairs =
+  for a <- galaxies, b <- galaxies, a != b do
+    if a < b, do: {a, b}, else: {b, a}
+  end
+  |> Enum.uniq()
+```
+
+## Part 1
+
+```elixir
+defmodule Universe do
+  def sum_distances(universe, galaxy_pairs, size) do
+    for {a, b} <- galaxy_pairs, reduce: 0 do
+      acc -> acc + distance(universe, a, b, size)
+    end
+  end
+
+  defp distance(universe, {x1, y1}, {x2, y2}, size) do
+    x_expansions = Enum.count(x1..x2, fn x -> universe[y1][x] == "X" end)
+    y_expansions = Enum.count(y1..y2, fn y -> universe[y][x2] == "X" end)
+    x_distance = abs(x1 - x2) - x_expansions + x_expansions * size
+    y_distance = abs(y1 - y2) - y_expansions + y_expansions * size
+
+    x_distance + y_distance
+  end
+end
+
+Universe.sum_distances(universe, pairs, 2)
+```
+
+## Part 2
+
+```elixir
+Universe.sum_distances(universe, pairs, 1_000_000)
+```
+
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F10.livemd)
+
+<!-- livebook:{"offset":2318,"stamp":{"token":"XCP.RswzOT-LyQdzx8BNOIFd6i5-wN5QeThZEGEr4C03iT_fXCbgJMAWk5Y_z5sxB2s7Ka7qY3hed9dFIww3cymN5bCp9gfN9YeVWOvsMke9Xvpx7ymENiw","version":2}} -->
