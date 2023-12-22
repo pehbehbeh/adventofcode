@@ -1,0 +1,88 @@
+<!-- livebook:{"file_entries":[{"name":"04.txt","type":"attachment"}]} -->
+
+# Advent of Code 2023 - Day 13
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.11.0"},
+  {:kino_aoc, github: "ljgago/kino_aoc"}
+])
+```
+
+## Input
+
+<!-- livebook:{"attrs":{"assign_to":"puzzle_input","day":"13","session_secret":"AOC_SESSION","year":"2023"},"chunks":null,"kind":"Elixir.KinoAOC.HelperCell","livebook_object":"smart_cell"} -->
+
+```elixir
+{:ok, puzzle_input} =
+  KinoAOC.download_puzzle("2023", "13", System.fetch_env!("LB_AOC_SESSION"))
+```
+
+```elixir
+input =
+  puzzle_input
+  |> String.split("\n\n", trim: true)
+  |> Enum.map(fn row ->
+    row
+    |> String.split("\n", trim: true)
+    |> Enum.map(&String.graphemes/1)
+  end)
+```
+
+## Part 1
+
+```elixir
+find_reflection = fn pattern, compare_fun ->
+  count = Enum.count(pattern)
+
+  Enum.find_index(0..(count - 2), fn i ->
+    upper = Enum.slice(pattern, 0..i)
+    lower = Enum.slice(pattern, (i + 1)..count)
+    min = min(length(upper), length(lower))
+    upper_cut = Enum.slice(upper, -min..-1)
+    lower_cut = Enum.slice(lower, 0..(min - 1))
+
+    compare_fun.(lower_cut, Enum.reverse(upper_cut))
+  end)
+end
+
+summarize = fn pattern, compare_fun ->
+  for pattern <- pattern, reduce: 0 do
+    sum ->
+      flipped = Enum.zip_with(pattern, &Function.identity/1)
+
+      ih = find_reflection.(pattern, compare_fun)
+      iv = find_reflection.(flipped, compare_fun)
+
+      case {ih, iv} do
+        {i, nil} -> sum + (i + 1) * 100
+        {nil, i} -> sum + i + 1
+      end
+  end
+end
+
+input
+|> summarize.(&(&1 == &2))
+```
+
+## Part 2
+
+```elixir
+defmodule Part2 do
+  def diff([], [], d), do: d
+  def diff([a1 | ar], [b1 | br], d) when a1 != b1, do: diff(ar, br, d + 1)
+  def diff([_ | ar], [_ | br], d), do: diff(ar, br, d)
+end
+
+input
+|> summarize.(fn a, b ->
+  a = List.flatten(a)
+  b = List.flatten(b)
+
+  Part2.diff(a, b, 0) == 1
+end)
+```
+
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F13.livemd)
+
+<!-- livebook:{"offset":2039,"stamp":{"token":"XCP.nBpDt7J_qevXFZZF96CBcekqVF5cX0W5gAd3cYA7tWxNeGsGhliq3rv0ADKpyj0lojv4DpqrdIs_XbGSwmC0Yn_t7s62p63EE6mBVAtRvFAS0LpMCw4","version":2}} -->
