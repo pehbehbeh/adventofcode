@@ -82,19 +82,23 @@ defmodule Part2 do
   def max_max(grid) do
     {len_r, len_c} = grid |> Map.keys() |> Enum.max()
 
-    max_t = max_from(0..len_c, &Part1.sum_energized(grid, {0, &1}, {1, 0}))
-    max_l = max_from(0..len_r, &Part1.sum_energized(grid, {&1, 0}, {0, 1}))
-    max_b = max_from(0..len_c, &Part1.sum_energized(grid, {len_r, &1}, {-1, 0}))
-    max_r = max_from(0..len_r, &Part1.sum_energized(grid, {&1, len_c}, {0, -1}))
-
-    Enum.max([max_t, max_b, max_l, max_r])
+    [
+      async_max(0..len_c, &Part1.sum_energized(grid, {0, &1}, {1, 0})),
+      async_max(0..len_r, &Part1.sum_energized(grid, {&1, 0}, {0, 1})),
+      async_max(0..len_c, &Part1.sum_energized(grid, {len_r, &1}, {-1, 0})),
+      async_max(0..len_r, &Part1.sum_energized(grid, {&1, len_c}, {0, -1}))
+    ]
+    |> Task.await_many(20_000)
+    |> Enum.max()
   end
 
-  defp max_from(range, callback) do
-    range
-    |> Task.async_stream(callback, ordered: false)
-    |> Enum.max()
-    |> elem(1)
+  defp async_max(range, callback) do
+    Task.async(fn ->
+      range
+      |> Task.async_stream(callback, ordered: false)
+      |> Enum.max()
+      |> elem(1)
+    end)
   end
 end
 
@@ -103,4 +107,4 @@ Part2.max_max(input)
 
 [![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F16.livemd)
 
-<!-- livebook:{"offset":2686,"stamp":{"token":"XCP.xZzsQ4mH-KdqnM1a8-khS9guDrmT2jsTJiBF6Dq3qYxV3jgXFtNugR7kBOH_dFV17uCURfQwM6bnb4tZ2fCLiSJMQehyq9zoLNdl17M-mSwAFbCtI6w","version":2}} -->
+<!-- livebook:{"offset":2725,"stamp":{"token":"XCP.XCR-qWlEvb59sU6cq44sDSho8I1EVv-PyFc51k7_inpsXESO83x-DmSXqYsGmeZsijCHPJ8WJ9t3it63Nh24onIeEZ3Vz6A1TFlvRHtIKmXi0ZaubHs","version":2}} -->
