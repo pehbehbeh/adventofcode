@@ -1,0 +1,106 @@
+<!-- livebook:{"file_entries":[{"name":"04.txt","type":"attachment"}]} -->
+
+# Advent of Code 2023 - Day 16
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.11.0"},
+  {:kino_aoc, github: "ljgago/kino_aoc"}
+])
+```
+
+## Input
+
+<!-- livebook:{"attrs":{"assign_to":"puzzle_input","day":"16","session_secret":"AOC_SESSION","year":"2023"},"chunks":null,"kind":"Elixir.KinoAOC.HelperCell","livebook_object":"smart_cell"} -->
+
+```elixir
+{:ok, puzzle_input} =
+  KinoAOC.download_puzzle("2023", "16", System.fetch_env!("LB_AOC_SESSION"))
+```
+
+```elixir
+input =
+  for {row, r} <- puzzle_input |> String.split("\n", trim: true) |> Stream.with_index(),
+      {col, c} <- row |> String.graphemes() |> Stream.with_index(),
+      into: %{},
+      do: {{r, c}, col}
+```
+
+## Part 1
+
+```elixir
+defmodule Part1 do
+  def sum_energized(grid, start, dir) do
+    do_energize([], grid, start, dir)
+    |> Stream.uniq_by(fn {pos, _} -> pos end)
+    |> Enum.count()
+  end
+
+  defp do_energize(acc, grid, {r, c} = pos, {dr, dc} = dir) do
+    energized = {pos, dir}
+
+    if Enum.member?(acc, energized) do
+      acc
+    else
+      case grid[pos] do
+        nil ->
+          acc
+
+        "/" ->
+          [energized | acc]
+          |> do_energize(grid, {r + dc * -1, c + dr * -1}, {dc * -1, dr * -1})
+
+        "\\" ->
+          [energized | acc]
+          |> do_energize(grid, {r + dc, c + dr}, {dc, dr})
+
+        "|" when dr == 0 ->
+          [energized | acc]
+          |> do_energize(grid, {r - 1, c}, {-1, 0})
+          |> do_energize(grid, {r + 1, c}, {+1, 0})
+
+        "-" when dc == 0 ->
+          [energized | acc]
+          |> do_energize(grid, {r, c - 1}, {0, -1})
+          |> do_energize(grid, {r, c + 1}, {0, +1})
+
+        _ ->
+          [energized | acc]
+          |> do_energize(grid, {r + dr, c + dc}, dir)
+      end
+    end
+  end
+end
+
+Part1.sum_energized(input, {0, 0}, {0, 1})
+```
+
+## Part 2
+
+```elixir
+defmodule Part2 do
+  def max_max(grid) do
+    {len_r, len_c} = grid |> Map.keys() |> Enum.max()
+
+    max_t = max_from(0..len_c, &Part1.sum_energized(grid, {0, &1}, {1, 0}))
+    max_l = max_from(0..len_r, &Part1.sum_energized(grid, {&1, 0}, {0, 1}))
+    max_b = max_from(0..len_c, &Part1.sum_energized(grid, {len_r, &1}, {-1, 0}))
+    max_r = max_from(0..len_r, &Part1.sum_energized(grid, {&1, len_c}, {0, -1}))
+
+    Enum.max([max_t, max_b, max_l, max_r])
+  end
+
+  defp max_from(range, callback) do
+    range
+    |> Task.async_stream(callback, ordered: false)
+    |> Enum.max()
+    |> elem(1)
+  end
+end
+
+Part2.max_max(input)
+```
+
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F16.livemd)
+
+<!-- livebook:{"offset":2686,"stamp":{"token":"XCP.xZzsQ4mH-KdqnM1a8-khS9guDrmT2jsTJiBF6Dq3qYxV3jgXFtNugR7kBOH_dFV17uCURfQwM6bnb4tZ2fCLiSJMQehyq9zoLNdl17M-mSwAFbCtI6w","version":2}} -->
