@@ -1,0 +1,55 @@
+<!-- livebook:{"file_entries":[{"name":"04.txt","type":"attachment"}]} -->
+
+# Advent of Code 2023 - Day 15
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.11.0"},
+  {:kino_aoc, github: "ljgago/kino_aoc"}
+])
+```
+
+## Input
+
+<!-- livebook:{"attrs":{"assign_to":"puzzle_input","day":"15","session_secret":"AOC_SESSION","year":"2023"},"chunks":null,"kind":"Elixir.KinoAOC.HelperCell","livebook_object":"smart_cell"} -->
+
+```elixir
+{:ok, puzzle_input} =
+  KinoAOC.download_puzzle("2023", "15", System.fetch_env!("LB_AOC_SESSION"))
+```
+
+```elixir
+puzzle_input2 = "rn=1,cm-,qp=3,cm=2,qp-,pc=4,ot=9,ab=5,pc-,pc=6,ot=7"
+
+input =
+  puzzle_input
+  |> String.split(",", trim: true)
+  |> Enum.map(&String.to_charlist/1)
+```
+
+## Part 1
+
+```elixir
+hash = fn chars ->
+  Enum.reduce(chars, 0, fn c, acc ->
+    acc
+    |> Kernel.+(c)
+    |> Kernel.*(17)
+    |> Kernel.rem(256)
+  end)
+end
+
+input
+|> Stream.map(hash)
+|> Enum.sum()
+```
+
+## Part 2
+
+```elixir
+
+```
+
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F15.livemd)
+
+<!-- livebook:{"offset":1111,"stamp":{"token":"XCP.EAAYdoIbw9CRPLGaxAEyRmKCchROwUWhymwe1cdfV82fEynmENVFhRmEFixEyCmo-PzPD1blUV33P1gq9rDPb96rDrhoi72ctw-kSSTDTHg8hybhjR8","version":2}} -->
