@@ -1,0 +1,135 @@
+<!-- livebook:{"file_entries":[{"name":"04.txt","type":"attachment"}]} -->
+
+# Advent of Code 2023 - Day 12
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.11.0"},
+  {:kino_aoc, github: "ljgago/kino_aoc"}
+])
+```
+
+## Input
+
+<!-- livebook:{"attrs":{"assign_to":"puzzle_input","day":"12","session_secret":"AOC_SESSION","year":"2023"},"chunks":null,"kind":"Elixir.KinoAOC.HelperCell","livebook_object":"smart_cell"} -->
+
+```elixir
+{:ok, puzzle_input} =
+  KinoAOC.download_puzzle("2023", "12", System.fetch_env!("LB_AOC_SESSION"))
+```
+
+```elixir
+input =
+  puzzle_input
+  |> String.split("\n", trim: true)
+  |> Enum.map(fn row ->
+    [record, checksum] = String.split(row, " ")
+
+    record = String.graphemes(record)
+
+    checksum =
+      checksum
+      |> String.split(",")
+      |> Enum.map(&String.to_integer/1)
+
+    {record, checksum}
+  end)
+```
+
+## Part 1
+
+Inspired by [HyperNeutrino](https://www.youtube.com/watch?v=g3Ms5e7Jdqo).
+
+```elixir
+defmodule HotSprings do
+  def sum_counts(rows) do
+    init_ets()
+
+    for {record, checksum} <- rows, reduce: 0 do
+      sum -> sum + HotSprings.count(record, checksum)
+    end
+  end
+
+  def count(record, []) do
+    if "#" in record, do: 0, else: 1
+  end
+
+  def count([], []), do: 1
+
+  def count([], _), do: 0
+
+  def count([first | rest] = record, [firstsum | restsum] = checksum) do
+    key = {record, checksum}
+
+    memoized(key, fn ->
+      Task.async(fn ->
+        if first in [".", "?"] do
+          count(rest, checksum)
+          |> increase(:result)
+        end
+
+        if first in ["#", "?"] do
+          if firstsum <= length(record) and
+               "." not in Enum.slice(record, 0..(firstsum - 1)) and
+               (firstsum == length(record) or Enum.at(record, firstsum) != "#") do
+            record
+            |> Enum.slice((firstsum + 1)..-1)
+            |> count(restsum)
+            |> increase(:result)
+          end
+        end
+
+        Process.get(:result, 0)
+      end)
+      |> Task.await()
+    end)
+  end
+
+  defp increase(by, key) do
+    current = Process.get(key, 0)
+    Process.put(key, current + by)
+  end
+
+  defp init_ets do
+    case :ets.whereis(:memo) do
+      :undefined -> :ets.new(:memo, [:set, :public, :named_table])
+      _ -> :ets.delete_all_objects(:memo)
+    end
+  end
+
+  defp memoized(key, fun) do
+    case :ets.lookup(:memo, key) do
+      [{^key, value}] -> value
+      [] -> fun.() |> tap(&:ets.insert(:memo, {key, &1}))
+    end
+  end
+end
+
+input
+|> HotSprings.sum_counts()
+```
+
+## Part 2
+
+```elixir
+input
+|> Enum.map(fn {record, checksum} ->
+  record =
+    record
+    |> List.duplicate(5)
+    |> Enum.join("?")
+    |> String.graphemes()
+
+  checksum =
+    checksum
+    |> List.duplicate(5)
+    |> List.flatten()
+
+  {record, checksum}
+end)
+|> HotSprings.sum_counts()
+```
+
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F12.livemd)
+
+<!-- livebook:{"offset":2926,"stamp":{"token":"XCP.jK1lZLca49zv0vKN4_rHSrAXw66aHL6CIx6GkiSnSa7Ln_YoFsZHjw0blMchfO6aP0kTMkziAJVvtXc4D5jjw01UHipqwBu0nQ9HYVsfvvPbL6RSFug","version":2}} -->
