@@ -1,0 +1,105 @@
+<!-- livebook:{"file_entries":[{"name":"04.txt","type":"attachment"}]} -->
+
+# Advent of Code 2023 - Day 14
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.11.0"},
+  {:kino_aoc, github: "ljgago/kino_aoc"}
+])
+```
+
+## Input
+
+<!-- livebook:{"attrs":{"assign_to":"puzzle_input","day":"14","session_secret":"AOC_SESSION","year":"2023"},"chunks":null,"kind":"Elixir.KinoAOC.HelperCell","livebook_object":"smart_cell"} -->
+
+```elixir
+{:ok, puzzle_input} =
+  KinoAOC.download_puzzle("2023", "14", System.fetch_env!("LB_AOC_SESSION"))
+```
+
+```elixir
+input =
+  puzzle_input
+  |> String.split("\n", trim: true)
+  |> Enum.map(&String.graphemes/1)
+```
+
+## Part 1
+
+```elixir
+transpose = fn matrix ->
+  Enum.zip_with(matrix, &Function.identity/1)
+end
+
+tilt = fn dish ->
+  dish
+  |> transpose.()
+  |> Enum.map(fn row ->
+    row
+    |> Enum.chunk_by(&(&1 == "#"))
+    |> Enum.map(&Enum.sort(&1, :desc))
+    |> List.flatten()
+  end)
+  |> transpose.()
+end
+
+total_load = fn dish ->
+  dish
+  |> Enum.reverse()
+  |> Stream.with_index(1)
+  |> Stream.map(fn {row, i} ->
+    Enum.count(row, &(&1 == "O")) * i
+  end)
+  |> Enum.sum()
+end
+
+input
+|> tilt.()
+|> total_load.()
+```
+
+## Part 2
+
+```elixir
+rotate = fn dish ->
+  dish
+  |> Enum.reverse()
+  |> transpose.()
+end
+
+cycle = fn dish ->
+  Enum.reduce([:north, :west, :south, :east], dish, fn _, acc ->
+    acc
+    |> tilt.()
+    |> rotate.()
+  end)
+end
+
+total = 1_000_000_000
+
+1..total
+|> Enum.reduce_while(input, fn i, dish ->
+  current = cycle.(dish)
+  hash = :erlang.phash2(current)
+
+  case Process.get(hash) do
+    nil ->
+      {:cont, tap(current, fn _ -> Process.put(hash, i) end)}
+
+    imem ->
+      remaining = total - imem
+      idiff = imem - i
+      loops = div(remaining, idiff)
+      {:halt, {current, total - imem - 1 - loops * idiff}}
+  end
+end)
+|> then(fn {dish, n} ->
+  Enum.reduce(0..n, dish, fn _, acc -> cycle.(acc) end)
+end)
+|> total_load.()
+```
+
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F14.livemd)
+
+<!-- livebook:{"offset":2060,"stamp":{"token":"XCP.o7AB1tmAm-GaQLHJ2IvwAJJ8bXbLrhdR5xX3lkCqnFch8tESQ2yxSNB6EH3FnWMntM7Fo_f8yqXdOu8tru9s99pNn99wTdznMqFG-PrVsWk74dCWHPM","version":2}} -->
