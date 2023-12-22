@@ -19,8 +19,6 @@ Mix.install([
 ```
 
 ```elixir
-puzzle_input2 = "rn=1,cm-,qp=3,cm=2,qp-,pc=4,ot=9,ab=5,pc-,pc=6,ot=7"
-
 input =
   puzzle_input
   |> String.split(",", trim: true)
@@ -52,4 +50,4 @@ input
 
 [![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F15.livemd)
 
-<!-- livebook:{"offset":1111,"stamp":{"token":"XCP.EAAYdoIbw9CRPLGaxAEyRmKCchROwUWhymwe1cdfV82fEynmENVFhRmEFixEyCmo-PzPD1blUV33P1gq9rDPb96rDrhoi72ctw-kSSTDTHg8hybhjR8","version":2}} -->
+<!-- livebook:{"offset":1040,"stamp":{"token":"XCP.CsfnCV1xSiOM3gpBGjly_tJEmM0OvK0OmRjy8tY2I8r-1ARnsRqQYpd_aDW1RZ15GRq2qG1yIz3XS3MNdaUNmac-k0P3-cN_eXPPkcwi2ut-aOlmOGI","version":2}} -->
