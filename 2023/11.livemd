@@ -97,6 +97,6 @@ Universe.sum_distances(universe, pairs, 2)
 Universe.sum_distances(universe, pairs, 1_000_000)
 ```
 
-[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F10.livemd)
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F11.livemd)
 
-<!-- livebook:{"offset":2318,"stamp":{"token":"XCP.RswzOT-LyQdzx8BNOIFd6i5-wN5QeThZEGEr4C03iT_fXCbgJMAWk5Y_z5sxB2s7Ka7qY3hed9dFIww3cymN5bCp9gfN9YeVWOvsMke9Xvpx7ymENiw","version":2}} -->
+<!-- livebook:{"offset":2318,"stamp":{"token":"XCP.k5OPTzE1jClwi9_WWOPaf8ec4vPdLDYCW2c_v64aXeYc5ClnEcEh-OXryG1_A05m0ikq2b5OHCT0hnL2_zERd9ol5HrBIWh3e0LnCMFArFDimEjT1LE","version":2}} -->
