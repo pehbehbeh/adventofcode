@@ -1,0 +1,122 @@
+<!-- livebook:{"file_entries":[{"name":"04.txt","type":"attachment"}]} -->
+
+# Advent of Code 2023 - Day 17
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.11.0"},
+  {:kino_aoc, github: "ljgago/kino_aoc"},
+  {:libgraph, "~> 0.16.0"}
+])
+```
+
+## Input
+
+<!-- livebook:{"attrs":{"assign_to":"puzzle_input","day":"17","session_secret":"AOC_SESSION","year":"2023"},"chunks":null,"kind":"Elixir.KinoAOC.HelperCell","livebook_object":"smart_cell"} -->
+
+```elixir
+{:ok, puzzle_input} =
+  KinoAOC.download_puzzle("2023", "17", System.fetch_env!("LB_AOC_SESSION"))
+```
+
+```elixir
+input =
+  for {row, r} <- puzzle_input |> String.split("\n", trim: true) |> Enum.with_index(),
+      {col, c} <- row |> String.graphemes() |> Enum.with_index(),
+      into: %{},
+      do: {{r, c}, String.to_integer(col)}
+```
+
+```elixir
+defmodule ClumsyCrucible do
+  def build_graph(grid, range) do
+    {max_r, max_c} = size(grid)
+
+    grid
+    |> Task.async_stream(
+      fn {{r, c}, _loss} ->
+        for blocks <- range do
+          []
+          |> maybe_add_edge({r, c, :v}, {r - blocks, c, :h}, grid)
+          |> maybe_add_edge({r, c, :v}, {r + blocks, c, :h}, grid)
+          |> maybe_add_edge({r, c, :h}, {r, c - blocks, :v}, grid)
+          |> maybe_add_edge({r, c, :h}, {r, c + blocks, :v}, grid)
+        end
+      end,
+      ordered: false
+    )
+    |> Stream.flat_map(&elem(&1, 1))
+    |> Enum.reduce(Graph.new(), &Graph.add_edges(&2, &1))
+    |> Graph.add_edges([
+      {:start, {0, 0, :v}, weight: 0},
+      {:start, {0, 0, :h}, weight: 0},
+      {{max_r, max_c, :v}, :destination, weight: 0},
+      {{max_r, max_c, :h}, :destination, weight: 0}
+    ])
+  end
+
+  def shortest_path(graph) do
+    graph
+    |> Graph.get_shortest_path(:start, :destination)
+    |> Enum.slice(1..-2)
+  end
+
+  def path_heat_loss(path, grid) do
+    len = length(path)
+
+    pairs =
+      Enum.zip(
+        Enum.slice(path, 0..(len - 1)),
+        Enum.slice(path, 1..len)
+      )
+
+    for {a, b} <- pairs, reduce: 0 do
+      acc -> acc + heat_loss(grid, a, b)
+    end
+  end
+
+  defp size(grid) do
+    grid
+    |> Map.keys()
+    |> Enum.max()
+  end
+
+  defp maybe_add_edge(list, from, {tr, tc, _} = to, grid) do
+    if Map.has_key?(grid, {tr, tc}) do
+      [{from, to, weight: heat_loss(grid, from, to)} | list]
+    else
+      list
+    end
+  end
+
+  defp heat_loss(grid, {fr, fc, _}, {tr, tc, _}) do
+    for r <- fr..tr, c <- fc..tc, reduce: -grid[{fr, fc}] do
+      acc -> acc + grid[{r, c}]
+    end
+  end
+end
+```
+
+```elixir
+import ClumsyCrucible
+```
+
+## Part 1
+
+```elixir
+build_graph(input, 1..3)
+|> shortest_path()
+|> path_heat_loss(input)
+```
+
+## Part 2
+
+```elixir
+build_graph(input, 4..10)
+|> shortest_path()
+|> path_heat_loss(input)
+```
+
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F16.livemd)
+
+<!-- livebook:{"offset":2864,"stamp":{"token":"XCP.zl444eWllZJZs2QuK9WEjijqLtreR_HrwXfheLssvp8jdp0KSGF8EPkDon6P3CEuoTqLzJwEHihwFIlYDkd-GdkI7E8gWHFaTQ1nIh509ry42jnSXEs","version":2}} -->
