@@ -1,0 +1,125 @@
+<!-- livebook:{"file_entries":[{"name":"04.txt","type":"attachment"}]} -->
+
+# Advent of Code 2023 - Day 18
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.11.0"},
+  {:kino_aoc, github: "ljgago/kino_aoc"}
+])
+```
+
+## Input
+
+<!-- livebook:{"attrs":{"assign_to":"puzzle_input","day":"18","session_secret":"AOC_SESSION","year":"2023"},"chunks":null,"kind":"Elixir.KinoAOC.HelperCell","livebook_object":"smart_cell"} -->
+
+```elixir
+{:ok, puzzle_input} =
+  KinoAOC.download_puzzle("2023", "18", System.fetch_env!("LB_AOC_SESSION"))
+```
+
+```elixir
+input =
+  puzzle_input
+  |> String.split("\n", trim: true)
+  |> Enum.map(fn line ->
+    String.split(line, [" ", " (#", ")"], trim: true)
+    |> List.to_tuple()
+  end)
+```
+
+```elixir
+defmodule LavaductLagoon do
+  @doc """
+  Get total area filled with lava from input dig plan.
+  """
+  def lava_area(plan) do
+    path = dig(plan)
+    area = shoelace(path)
+    boundary = boundary(plan)
+
+    boundary + picks(area, boundary)
+  end
+
+  @doc """
+  Get the path from input dig plan.
+  """
+  def dig(plan) do
+    for {{dr, dc}, meters} <- plan, reduce: [{0, 0}] do
+      [{r, c} | _] = acc -> [{r + dr * meters, c + dc * meters} | acc]
+    end
+  end
+
+  @doc """
+  Get the length of boundary meters from input dig plan.
+  """
+  def boundary(plan) do
+    plan
+    |> Enum.map(&elem(&1, 1))
+    |> Enum.sum()
+  end
+
+  @doc """
+  Get the area of input polygon via Shoelace formula.
+
+  see https://en.wikipedia.org/wiki/Shoelace_formula
+  see https://rosettacode.org/wiki/Shoelace_formula_for_polygonal_area#Elixir
+  """
+  def shoelace(points) do
+    points
+    |> Enum.reduce({0, List.last(points)}, fn {x1, y1}, {sum, {x0, y0}} ->
+      {sum + (y0 * x1 - x0 * y1), {x1, y1}}
+    end)
+    |> elem(0)
+    |> abs()
+    |> div(2)
+  end
+
+  @doc """
+  Get number of inside points via Pick's theorem.
+
+  see https://en.wikipedia.org/wiki/Pick%27s_theorem
+  """
+  def picks(area, boundary) do
+    area - div(boundary, 2) + 1
+  end
+end
+```
+
+```elixir
+import LavaductLagoon
+```
+
+## Part 1
+
+```elixir
+input
+|> Enum.map(fn {d, m, _} ->
+  case {d, String.to_integer(m)} do
+    {"L", m} -> {{-1, 0}, m}
+    {"R", m} -> {{1, 0}, m}
+    {"U", m} -> {{0, -1}, m}
+    {"D", m} -> {{0, 1}, m}
+  end
+end)
+|> lava_area()
+```
+
+## Part 2
+
+```elixir
+input
+|> Enum.map(fn {_, _, <<hex::bytes-size(5)>> <> d} ->
+  case {d, Integer.parse(hex, 16)} do
+    {"0", {m, _}} -> {{0, 1}, m}
+    {"1", {m, _}} -> {{1, 0}, m}
+    {"2", {m, _}} -> {{0, -1}, m}
+    {"3", {m, _}} -> {{-1, 0}, m}
+  end
+end)
+|> lava_area()
+```
+
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F18.livemd)
+
+<!-- livebook:{"offset":2688,"stamp":{"token":"XCP.7-SjxtzTgYnii41SNlcfcXAE5yo308CUTB9wXxDqpMdeaKvRU2YR7ZkjsSaAN5UgobvWaN5mrhfC-aBS_HlXhqIoC5Azhevplue0gl161jcvKq0V5Bw","version":2}} -->
