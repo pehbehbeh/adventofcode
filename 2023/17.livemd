@@ -117,6 +117,6 @@ build_graph(input, 4..10)
 |> path_heat_loss(input)
 ```
 
-[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F16.livemd)
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F17.livemd)
 
-<!-- livebook:{"offset":2864,"stamp":{"token":"XCP.ZOK3iTt7HXDDBWtsZcT7qQsZtFjsXGYxAFPgGy_HEM96feqkMPlRpCgVnmRAxLDU7uA21mEawqjQ7XaZON9QPGkUwolt8wZzQJmB0nTcVDALEPWupBE","version":2}} -->
+<!-- livebook:{"offset":2864,"stamp":{"token":"XCP.hZKYSPU8DtvegIzgpxUbE8xX-VmrUN46__YTgKgOnPTttNq9PPgpb7W7hmIr5zxE0jyWvgawwWN2FUzUtHv2qT0z2I8g3qj7TEGYbfzsR8jpPBw4hXI","version":2}} -->
