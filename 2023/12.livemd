@@ -5,7 +5,8 @@
 ```elixir
 Mix.install([
   {:kino, "~> 0.11.0"},
-  {:kino_aoc, github: "ljgago/kino_aoc"}
+  {:kino_aoc, github: "ljgago/kino_aoc"},
+  {:memoize, "~> 1.4"}
 ])
 ```
 
@@ -42,8 +43,10 @@ Inspired by [HyperNeutrino](https://www.youtube.com/watch?v=g3Ms5e7Jdqo).
 
 ```elixir
 defmodule HotSprings do
+  use Memoize
+
   def sum_counts(rows) do
-    init_ets()
+    Memoize.invalidate(__MODULE__)
 
     for {record, checksum} <- rows, reduce: 0 do
       sum -> sum + HotSprings.count(record, checksum)
@@ -58,50 +61,32 @@ defmodule HotSprings do
 
   def count([], _), do: 0
 
-  def count([first | rest] = record, [firstsum | restsum] = checksum) do
-    key = {record, checksum}
+  defmemo count([first | rest] = record, [firstsum | restsum] = checksum) do
+    Task.async(fn ->
+      if first in [".", "?"] do
+        count(rest, checksum)
+        |> increase(:result)
+      end
 
-    memoized(key, fn ->
-      Task.async(fn ->
-        if first in [".", "?"] do
-          count(rest, checksum)
+      if first in ["#", "?"] do
+        if firstsum <= length(record) and
+             "." not in Enum.slice(record, 0..(firstsum - 1)) and
+             (firstsum == length(record) or Enum.at(record, firstsum) != "#") do
+          record
+          |> Enum.slice((firstsum + 1)..-1)
+          |> count(restsum)
           |> increase(:result)
         end
+      end
 
-        if first in ["#", "?"] do
-          if firstsum <= length(record) and
-               "." not in Enum.slice(record, 0..(firstsum - 1)) and
-               (firstsum == length(record) or Enum.at(record, firstsum) != "#") do
-            record
-            |> Enum.slice((firstsum + 1)..-1)
-            |> count(restsum)
-            |> increase(:result)
-          end
-        end
-
-        Process.get(:result, 0)
-      end)
-      |> Task.await()
+      Process.get(:result, 0)
     end)
+    |> Task.await()
   end
 
   defp increase(by, key) do
     current = Process.get(key, 0)
     Process.put(key, current + by)
-  end
-
-  defp init_ets do
-    case :ets.whereis(:memo) do
-      :undefined -> :ets.new(:memo, [:set, :public, :named_table])
-      _ -> :ets.delete_all_objects(:memo)
-    end
-  end
-
-  defp memoized(key, fun) do
-    case :ets.lookup(:memo, key) do
-      [{^key, value}] -> value
-      [] -> fun.() |> tap(&:ets.insert(:memo, {key, &1}))
-    end
   end
 end
 
@@ -132,4 +117,4 @@ end)
 
 [![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F12.livemd)
 
-<!-- livebook:{"offset":2926,"stamp":{"token":"XCP.jK1lZLca49zv0vKN4_rHSrAXw66aHL6CIx6GkiSnSa7Ln_YoFsZHjw0blMchfO6aP0kTMkziAJVvtXc4D5jjw01UHipqwBu0nQ9HYVsfvvPbL6RSFug","version":2}} -->
+<!-- livebook:{"offset":2546,"stamp":{"token":"XCP.mlgpCnRrUrKO-nlMtrM4Iyanu-PC9ASdTcdXXgxHJKBUQOALUkaVk1Wc_Ddu8XPp4I9EtWG4VLPTbP7u5_8XagjFiMCs0TE2GsFh2YQD6VDMKv81co0","version":2}} -->
