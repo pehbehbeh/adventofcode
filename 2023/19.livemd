@@ -1,0 +1,123 @@
+<!-- livebook:{"file_entries":[{"name":"04.txt","type":"attachment"}]} -->
+
+# Advent of Code 2023 - Day 19
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.11.0"},
+  {:kino_aoc, github: "ljgago/kino_aoc"}
+])
+```
+
+## Input
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJwdXp6bGVfaW5wdXQiLCJkYXkiOiIxOSIsInNlc3Npb25fc2VjcmV0IjoiQU9DX1NFU1NJT04iLCJ5ZWFyIjoiMjAyMyJ9","chunks":null,"kind":"Elixir.KinoAOC.HelperCell","livebook_object":"smart_cell"} -->
+
+```elixir
+{:ok, puzzle_input} =
+  KinoAOC.download_puzzle("2023", "19", System.fetch_env!("LB_AOC_SESSION"))
+```
+
+```elixir
+[workflow_input, parts_input] =
+  puzzle_input
+  |> String.split("\n\n", trim: true)
+```
+
+```elixir
+parse_rules = fn input ->
+  for raw <- input do
+    case Regex.scan(~r/(.)(<|>)(.*):(.*)/, raw, capture: :all_but_first) do
+      [[r, c, v, n]] -> {String.to_atom(r), c, String.to_integer(v), n}
+      [] -> raw
+    end
+  end
+end
+
+workflows =
+  workflow_input
+  |> String.split("\n", trim: true)
+  |> Stream.map(&String.split(&1, ["{", ",", "}"], trim: true))
+  |> Stream.map(fn [n | rule_input] -> {n, parse_rules.(rule_input)} end)
+  |> Enum.into(%{})
+```
+
+```elixir
+parts =
+  parts_input
+  |> String.split("\n", trim: true)
+  |> Enum.map(fn line ->
+    line
+    |> String.split(["{", ",", "}", "="], trim: true)
+    |> Stream.chunk_every(2)
+    |> Stream.map(fn [k, v] -> {String.to_atom(k), String.to_integer(v)} end)
+    |> Enum.into(%{})
+  end)
+```
+
+## Part 1
+
+```elixir
+defmodule Part1 do
+  def work("A", _, _), do: true
+
+  def work("R", _, _), do: false
+
+  def work(name, flows, part) do
+    next(part, flows[name])
+    |> work(flows, part)
+  end
+
+  defp next(part, rules) do
+    rules
+    |> Enum.find_value(fn
+      {r, "<", v, n} -> if part[r] < v, do: n
+      {r, ">", v, n} -> if part[r] > v, do: n
+      n -> n
+    end)
+  end
+end
+
+parts
+|> Stream.filter(&Part1.work("in", workflows, &1))
+|> Stream.flat_map(&Map.values/1)
+|> Enum.sum()
+```
+
+## Part 2
+
+```elixir
+defmodule Part2 do
+  def work("A", _, parts), do: combinations(parts)
+  def work("R", _, _), do: 0
+  def work(name, flows, parts), do: do_work(flows[name], flows, parts)
+
+  def do_work([{r, c, v, n} | rest], flows, parts) do
+    {p1, p2} = split(parts, r, c, v, parts[r])
+    work(n, flows, p1) + do_work(rest, flows, p2)
+  end
+
+  def do_work([n], flows, parts), do: work(n, flows, parts)
+
+  defp split(p, r, "<", v, f..l), do: {%{p | r => f..(v - 1)}, %{p | r => v..l}}
+  defp split(p, r, ">", v, f..l), do: {%{p | r => (v + 1)..l}, %{p | r => f..v}}
+
+  defp combinations(parts) do
+    parts
+    |> Map.values()
+    |> Stream.map(&Range.size/1)
+    |> Enum.product()
+  end
+end
+
+Part2.work("in", workflows, %{
+  x: 1..4000,
+  m: 1..4000,
+  a: 1..4000,
+  s: 1..4000
+})
+```
+
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F18.livemd)
+
+<!-- livebook:{"offset":2888,"stamp":{"token":"XCP.FQjW7EmHS-oecQn2uJfBCDRgrlK8-kWgEp-QOCjuQh_WQx5h0QUmduARS8JK9rSt5A-g6I4oTzitEVps2H4c3oB6kW94CRSRjava1Tqxys8qKbY5uKE","version":2}} -->
