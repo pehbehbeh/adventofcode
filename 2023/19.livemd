@@ -93,14 +93,14 @@ defmodule Part2 do
   def work(name, flows, parts), do: do_work(flows[name], flows, parts)
 
   def do_work([{r, c, v, n} | rest], flows, parts) do
-    {p1, p2} = split(parts, r, c, v, parts[r])
+    {p1, p2} = split(parts, parts[r], r, c, v)
     work(n, flows, p1) + do_work(rest, flows, p2)
   end
 
   def do_work([n], flows, parts), do: work(n, flows, parts)
 
-  defp split(p, r, "<", v, f..l), do: {%{p | r => f..(v - 1)}, %{p | r => v..l}}
-  defp split(p, r, ">", v, f..l), do: {%{p | r => (v + 1)..l}, %{p | r => f..v}}
+  defp split(p, f..l, r, "<", v), do: {%{p | r => f..(v - 1)}, %{p | r => v..l}}
+  defp split(p, f..l, r, ">", v), do: {%{p | r => (v + 1)..l}, %{p | r => f..v}}
 
   defp combinations(parts) do
     parts
@@ -118,6 +118,6 @@ Part2.work("in", workflows, %{
 })
 ```
 
-[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F18.livemd)
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F19.livemd)
 
-<!-- livebook:{"offset":2888,"stamp":{"token":"XCP.FQjW7EmHS-oecQn2uJfBCDRgrlK8-kWgEp-QOCjuQh_WQx5h0QUmduARS8JK9rSt5A-g6I4oTzitEVps2H4c3oB6kW94CRSRjava1Tqxys8qKbY5uKE","version":2}} -->
+<!-- livebook:{"offset":2888,"stamp":{"token":"XCP.j-hJ4umseeYui1TT9l8hQra3vPRuvVDeqOcAJCl1DhGOtwghktFBi25AviI_bXupB3P1OBCSwk147a8jA5uzm1jF4fvRzrpJpx_spbjPfswPmCaXElM","version":2}} -->
