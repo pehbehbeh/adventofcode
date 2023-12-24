@@ -56,28 +56,23 @@ parts =
 
 ```elixir
 defmodule Part1 do
-  def work("A", _, _), do: true
+  def work("A", _, part), do: Map.values(part)
 
-  def work("R", _, _), do: false
+  def work("R", _, _), do: [0]
 
   def work(name, flows, part) do
-    next(part, flows[name])
-    |> work(flows, part)
-  end
-
-  defp next(part, rules) do
-    rules
+    flows[name]
     |> Enum.find_value(fn
       {r, "<", v, n} -> if part[r] < v, do: n
       {r, ">", v, n} -> if part[r] > v, do: n
       n -> n
     end)
+    |> work(flows, part)
   end
 end
 
 parts
-|> Stream.filter(&Part1.work("in", workflows, &1))
-|> Stream.flat_map(&Map.values/1)
+|> Stream.flat_map(&Part1.work("in", workflows, &1))
 |> Enum.sum()
 ```
 
@@ -117,4 +112,4 @@ Part2.work("in", workflows, %{
 
 [![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F19.livemd)
 
-<!-- livebook:{"offset":2683,"stamp":{"token":"XCP.n9XKw3p9Jqp_8SX8vw-a30ZVV-4zoJiG3PquF-JodOm5r_jVQf-FkJ8tCFL0HPbn8ER8IrY9QWGbwAyGQuzBQBdZNIWB4jcCG0lBhcmkpT-yHYnyV9c","version":2}} -->
+<!-- livebook:{"offset":2607,"stamp":{"token":"XCP._H-p8RQYkjOMMFzPXB2RBGBTuTA4d8rbCizHuYhBEEBUVp6qY5jes2OpJKH0YENc3yh7OgQ3T5soRP-P8wv5vsShwBGNZA_k3wbgr9aFIjJCzUsATHw","version":2}} -->
