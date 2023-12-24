@@ -4,18 +4,15 @@
 
 ```elixir
 Mix.install([
-  {:kino, "~> 0.11.0"},
-  {:kino_aoc, github: "ljgago/kino_aoc"}
+  {:req, "~> 0.4.0"}
 ])
 ```
 
 ## Input
 
-<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJwdXp6bGVfaW5wdXQiLCJkYXkiOiIxOSIsInNlc3Npb25fc2VjcmV0IjoiQU9DX1NFU1NJT04iLCJ5ZWFyIjoiMjAyMyJ9","chunks":null,"kind":"Elixir.KinoAOC.HelperCell","livebook_object":"smart_cell"} -->
-
 ```elixir
-{:ok, puzzle_input} =
-  KinoAOC.download_puzzle("2023", "19", System.fetch_env!("LB_AOC_SESSION"))
+opts = [headers: [{"cookie", "session=#{System.fetch_env!("LB_AOC_SESSION")}"}]]
+puzzle_input = Req.get!("https://adventofcode.com/2023/day/19/input", opts).body
 ```
 
 ```elixir
@@ -120,4 +117,4 @@ Part2.work("in", workflows, %{
 
 [![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F19.livemd)
 
-<!-- livebook:{"offset":2888,"stamp":{"token":"XCP.j-hJ4umseeYui1TT9l8hQra3vPRuvVDeqOcAJCl1DhGOtwghktFBi25AviI_bXupB3P1OBCSwk147a8jA5uzm1jF4fvRzrpJpx_spbjPfswPmCaXElM","version":2}} -->
+<!-- livebook:{"offset":2683,"stamp":{"token":"XCP.n9XKw3p9Jqp_8SX8vw-a30ZVV-4zoJiG3PquF-JodOm5r_jVQf-FkJ8tCFL0HPbn8ER8IrY9QWGbwAyGQuzBQBdZNIWB4jcCG0lBhcmkpT-yHYnyV9c","version":2}} -->
