@@ -1,0 +1,159 @@
+<!-- livebook:{"file_entries":[{"name":"04.txt","type":"attachment"}]} -->
+
+# Advent of Code 2023 - Day 20
+
+```elixir
+Mix.install([
+  {:req, "~> 0.4.0"},
+  {:kino, "~> 0.12.0"}
+])
+```
+
+## Input
+
+```elixir
+opts = [headers: [{"cookie", "session=#{System.fetch_env!("LB_AOC_SESSION")}"}]]
+puzzle_input = Req.get!("https://adventofcode.com/2023/day/20/input", opts).body
+```
+
+```elixir
+import String, only: [to_atom: 1]
+
+input =
+  puzzle_input
+  |> String.split("\n", trim: true)
+  |> Enum.map(&String.split(&1, [" -> ", ", "]))
+  |> Enum.map(fn
+    ["broadcaster" | d] -> {:broadcaster, :broadcaster, Enum.map(d, &to_atom/1)}
+    ["%" <> name | d] -> {to_atom(name), :flipflop, Enum.map(d, &to_atom/1)}
+    ["&" <> name | d] -> {to_atom(name), :conjunction, Enum.map(d, &to_atom/1)}
+  end)
+  |> Kernel.++([
+    {:button, :button, [:broadcaster]}
+  ])
+  |> Enum.map(fn {name, type, destinations} ->
+    {name, %{name: name, type: type, destinations: destinations, state: nil, pulses: []}}
+  end)
+  |> Enum.into(%{})
+```
+
+```elixir
+for {from, %{type: type, destinations: destinations}} <- input,
+    to <- destinations,
+    reduce: "graph LR;\n" do
+  acc ->
+    case type do
+      :broadcaster -> acc <> "#{from}((#{from})) --> #{to}\n"
+      :conjunction -> acc <> "#{from}{#{from}} --> #{to}\n"
+      _type -> acc <> "#{from} --> #{to}\n"
+    end
+end
+|> Kino.Mermaid.new()
+```
+
+## Part 1
+
+```elixir
+defmodule Part1 do
+  def aptly(machine) do
+    q = fifo_push({:button, 0, :broadcaster})
+    work({q, machine})
+  end
+
+  defp work({q, machine}) do
+    case fifo_pop(q) do
+      {{:value, {from, pulse, to}}, rest} ->
+        machine = update_in(machine, [from, :pulses], fn x -> [pulse | x] end)
+
+        pulses(rest, pulse, machine[from], machine[to], machine)
+        |> work()
+
+      {:empty, _} ->
+        machine
+    end
+  end
+
+  # INIT STATES
+
+  defp pulses(q, pulse, from, %{state: nil} = to, machine) do
+    %{name: name, type: type} = to
+
+    init =
+      case type do
+        :flipflop ->
+          false
+
+        :conjunction ->
+          machine
+          |> Enum.filter(fn {_, module} -> Enum.member?(module.destinations, name) end)
+          |> Enum.map(fn {_, module} -> {module.name, 0} end)
+          |> Enum.into(%{})
+
+        _ ->
+          :ok
+      end
+
+    machine = update_in(machine, [name, :state], fn nil -> init end)
+
+    pulses(q, pulse, from, machine[name], machine)
+  end
+
+  # PULSES
+
+  defp pulses(q, _pulse, _from, nil, machine), do: {q, machine}
+
+  defp pulses(q, pulse, _from, %{type: :broadcaster} = to, machine) do
+    %{name: name, destinations: destinations} = to
+
+    do_pulses(q, pulse, name, destinations, machine)
+  end
+
+  defp pulses(q, 1, _from, %{type: :flipflop} = _to, machine), do: {q, machine}
+
+  defp pulses(q, 0, _from, %{type: :flipflop} = to, machine) do
+    %{name: name, destinations: destinations, state: state} = to
+    machine = update_in(machine, [name, :state], fn x -> not x end)
+    next = if state, do: 0, else: 1
+
+    do_pulses(q, next, name, destinations, machine)
+  end
+
+  defp pulses(q, pulse, from, %{type: :conjunction} = to, machine) do
+    %{name: sender} = from
+    %{name: name, destinations: destinations} = to
+
+    machine = update_in(machine, [name, :state, sender], fn _ -> pulse end)
+    next = if Enum.all?(machine[name][:state], &(elem(&1, 1) == 1)), do: 0, else: 1
+
+    do_pulses(q, next, name, destinations, machine)
+  end
+
+  defp do_pulses(q, pulse, name, destinations, machine) do
+    destinations
+    |> Enum.reduce(q, fn d, acc ->
+      fifo_push(acc, {name, pulse, d})
+    end)
+    |> then(fn newq -> {newq, machine} end)
+  end
+
+  defp fifo_push(q \\ :queue.new(), item), do: :queue.in(item, q)
+  defp fifo_pop(q), do: :queue.out(q)
+end
+
+1..1000
+|> Enum.reduce(input, fn _i, acc -> Part1.aptly(acc) end)
+|> Stream.flat_map(fn {_, %{pulses: pulses}} -> pulses end)
+|> Enum.frequencies()
+|> Map.values()
+|> Enum.product()
+```
+
+## Part 2
+
+```elixir
+
+```
+
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F20.livemd)
+
+<!-- livebook:{"offset":4111,"stamp":{"token":"XCP.ohfo739jS7OvSeb5sO2_iVC6GS2e830HY9lw2e8FAN9u5MrRtWFXwyQEc4cNXYK3PTEzjzgtP2htblUURq3tELFyLsd-P0NwH6gvMKZH5ZpJ3mFCgv8","version":2}} -->

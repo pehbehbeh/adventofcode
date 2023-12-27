@@ -112,4 +112,4 @@ Part2.work("in", workflows, %{
 
 [![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F19.livemd)
 
-<!-- livebook:{"offset":2607,"stamp":{"token":"XCP._H-p8RQYkjOMMFzPXB2RBGBTuTA4d8rbCizHuYhBEEBUVp6qY5jes2OpJKH0YENc3yh7OgQ3T5soRP-P8wv5vsShwBGNZA_k3wbgr9aFIjJCzUsATHw","version":2}} -->
+<!-- livebook:{"offset":2607,"stamp":{"token":"XCP.qurGHaEOCLWWvqJv2L95jbMaUmrlqC0a9Ns091CPLr0lJ1gefK2h200LSToIHtsq2SwjZ7zYLEhJJfURrU9E8lANBenXQqwDURf4Mvmy8OxztrrizEs","version":2}} -->
