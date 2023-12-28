@@ -19,6 +19,20 @@ puzzle_input = Req.get!("https://adventofcode.com/2023/day/20/input", opts).body
 ```elixir
 import String, only: [to_atom: 1]
 
+parents = fn machine, child ->
+  machine
+  |> Enum.filter(fn {_, module} ->
+    module.destinations
+    |> Enum.member?(child)
+  end)
+end
+
+init_state = fn
+  _m, _n, :flipflop -> false
+  m, n, :conjunction -> for {_, %{name: n}} <- parents.(m, n), into: %{}, do: {n, 0}
+  _m, _n, _t -> :ok
+end
+
 input =
   puzzle_input
   |> String.split("\n", trim: true)
@@ -35,6 +49,12 @@ input =
     {name, %{name: name, type: type, destinations: destinations, state: nil, pulses: []}}
   end)
   |> Enum.into(%{})
+  |> then(fn machine ->
+    machine
+    |> Enum.reduce(machine, fn {name, %{type: type}}, acc ->
+      update_in(acc[name][:state], fn _ -> init_state.(acc, name, type) end)
+    end)
+  end)
 ```
 
 ```elixir
@@ -60,50 +80,17 @@ defmodule Machine do
 
   defp work({q, machine}) do
     case fifo_pop(q) do
-      {{:value, {from, pulse, to}}, rest} ->
-        machine = update_in(machine, [from, :pulses], fn x -> [pulse | x] end)
-
-        pulses(rest, pulse, machine[from], machine[to], machine)
-        |> work()
-
-      {:empty, _} ->
-        machine
+      {{:value, {from, pulse, to}}, rest} -> do_work(rest, pulse, from, to, machine)
+      {:empty, _} -> machine
     end
   end
 
-  def parents(machine, child) do
-    machine
-    |> Enum.filter(fn {_, module} ->
-      Enum.member?(module.destinations, child)
-    end)
+  defp do_work(q, pulse, from, to, machine) do
+    machine = update_in(machine, [from, :pulses], fn x -> [pulse | x] end)
+
+    pulses(q, pulse, machine[from], machine[to], machine)
+    |> work()
   end
-
-  # INIT STATES
-
-  defp pulses(q, pulse, from, %{state: nil} = to, machine) do
-    %{name: name, type: type} = to
-
-    init =
-      case type do
-        :flipflop ->
-          false
-
-        :conjunction ->
-          machine
-          |> parents(name)
-          |> Enum.map(fn {_, module} -> {module.name, 0} end)
-          |> Enum.into(%{})
-
-        _ ->
-          :ok
-      end
-
-    machine = update_in(machine, [name, :state], fn nil -> init end)
-
-    pulses(q, pulse, from, machine[name], machine)
-  end
-
-  # PULSES
 
   defp pulses(q, _pulse, _from, nil, machine), do: {q, machine}
 
@@ -160,40 +147,38 @@ end
 ## Part 2
 
 ```elixir
-gparents =
-  for {parent, _} <- Machine.parents(input, :rx),
-      {gparent, _} <- Machine.parents(input, parent),
-      do: gparent
+init_highs =
+  for {parent, _} <- parents.(input, :rx),
+      {gparent, _} <- parents.(input, parent),
+      into: %{},
+      do: {gparent, nil}
 ```
 
 ```elixir
-init_highs = for gp <- gparents, into: %{}, do: {gp, nil}
+update_highs = fn machine, highs, i ->
+  highs
+  |> Enum.reduce(highs, fn {name, _}, acc ->
+    Map.update!(acc, name, fn
+      nil -> if Enum.member?(machine[name][:pulses], 1), do: i, else: nil
+      value -> value
+    end)
+  end)
+end
 
 find_highs = fn i, {acc_machine, acc_highs} ->
   if Enum.any?(acc_highs, fn {_name, index} -> is_nil(index) end) do
-    acc_highs =
-      acc_highs
-      |> Enum.reduce(acc_highs, fn {name, _}, acc ->
-        Map.update!(acc, name, fn
-          nil -> if Enum.member?(acc_machine[name][:pulses], 1), do: i, else: nil
-          value -> value
-        end)
-      end)
-
-    {:cont, {Machine.aptly(acc_machine), acc_highs}}
+    {:cont, {Machine.aptly(acc_machine), update_highs.(acc_machine, acc_highs, i)}}
   else
     {:halt, acc_highs}
   end
 end
 
-lcm = fn a, b -> div(a * b, Integer.gcd(a, b)) end
-
 Stream.unfold(0, fn x -> {x, x + 1} end)
 |> Enum.reduce_while({input, init_highs}, find_highs)
 |> Map.values()
-|> Enum.reduce(lcm)
+|> Enum.reduce(&div(&1 * &2, Integer.gcd(&1, &2)))
 ```
 
 [![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F20.livemd)
 
-<!-- livebook:{"offset":5063,"stamp":{"token":"XCP.aCa9o21hulI2xhnQ1y93IbwBBqhs9KODvXmEFy0fzWMlJAw5cSjWBf5plntvcarwlEPYwFjucUJX6hftlg7JgsSUP1IJziMUkhJpFB6SsLqIbLt6ssM","version":2}} -->
+<!-- livebook:{"offset":4901,"stamp":{"token":"XCP.76uEr6O3pb2JswQsLD8rMTeRU8Tl8ORjJ-N67oTWgVFMi-gpKqIvtU5a-gVjHuABAIxvOWogQ7FBat82_K4gfUwjzOOBnT-Hi3G6Z8xXTLgnIeHka3Y","version":2}} -->
