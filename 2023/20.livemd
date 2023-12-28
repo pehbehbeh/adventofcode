@@ -51,10 +51,8 @@ end
 |> Kino.Mermaid.new()
 ```
 
-## Part 1
-
 ```elixir
-defmodule Part1 do
+defmodule Machine do
   def aptly(machine) do
     q = fifo_push({:button, 0, :broadcaster})
     work({q, machine})
@@ -73,6 +71,13 @@ defmodule Part1 do
     end
   end
 
+  def parents(machine, child) do
+    machine
+    |> Enum.filter(fn {_, module} ->
+      Enum.member?(module.destinations, child)
+    end)
+  end
+
   # INIT STATES
 
   defp pulses(q, pulse, from, %{state: nil} = to, machine) do
@@ -85,7 +90,7 @@ defmodule Part1 do
 
         :conjunction ->
           machine
-          |> Enum.filter(fn {_, module} -> Enum.member?(module.destinations, name) end)
+          |> parents(name)
           |> Enum.map(fn {_, module} -> {module.name, 0} end)
           |> Enum.into(%{})
 
@@ -139,9 +144,13 @@ defmodule Part1 do
   defp fifo_push(q \\ :queue.new(), item), do: :queue.in(item, q)
   defp fifo_pop(q), do: :queue.out(q)
 end
+```
 
+## Part 1
+
+```elixir
 1..1000
-|> Enum.reduce(input, fn _i, acc -> Part1.aptly(acc) end)
+|> Enum.reduce(input, fn _i, acc -> Machine.aptly(acc) end)
 |> Stream.flat_map(fn {_, %{pulses: pulses}} -> pulses end)
 |> Enum.frequencies()
 |> Map.values()
@@ -151,9 +160,40 @@ end
 ## Part 2
 
 ```elixir
+gparents =
+  for {parent, _} <- Machine.parents(input, :rx),
+      {gparent, _} <- Machine.parents(input, parent),
+      do: gparent
+```
 
+```elixir
+init_highs = for gp <- gparents, into: %{}, do: {gp, nil}
+
+find_highs = fn i, {acc_machine, acc_highs} ->
+  if Enum.any?(acc_highs, fn {_name, index} -> is_nil(index) end) do
+    acc_highs =
+      acc_highs
+      |> Enum.reduce(acc_highs, fn {name, _}, acc ->
+        Map.update!(acc, name, fn
+          nil -> if Enum.member?(acc_machine[name][:pulses], 1), do: i, else: nil
+          value -> value
+        end)
+      end)
+
+    {:cont, {Machine.aptly(acc_machine), acc_highs}}
+  else
+    {:halt, acc_highs}
+  end
+end
+
+lcm = fn a, b -> div(a * b, Integer.gcd(a, b)) end
+
+Stream.unfold(0, fn x -> {x, x + 1} end)
+|> Enum.reduce_while({input, init_highs}, find_highs)
+|> Map.values()
+|> Enum.reduce(lcm)
 ```
 
 [![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F20.livemd)
 
-<!-- livebook:{"offset":4111,"stamp":{"token":"XCP.ohfo739jS7OvSeb5sO2_iVC6GS2e830HY9lw2e8FAN9u5MrRtWFXwyQEc4cNXYK3PTEzjzgtP2htblUURq3tELFyLsd-P0NwH6gvMKZH5ZpJ3mFCgv8","version":2}} -->
+<!-- livebook:{"offset":5063,"stamp":{"token":"XCP.aCa9o21hulI2xhnQ1y93IbwBBqhs9KODvXmEFy0fzWMlJAw5cSjWBf5plntvcarwlEPYwFjucUJX6hftlg7JgsSUP1IJziMUkhJpFB6SsLqIbLt6ssM","version":2}} -->
