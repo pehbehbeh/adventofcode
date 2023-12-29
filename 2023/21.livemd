@@ -1,0 +1,77 @@
+<!-- livebook:{"file_entries":[{"name":"04.txt","type":"attachment"}]} -->
+
+# Advent of Code 2023 - Day 21
+
+```elixir
+Mix.install([
+  {:req, "~> 0.4.0"}
+])
+```
+
+## Input
+
+```elixir
+opts = [headers: [{"cookie", "session=#{System.fetch_env!("LB_AOC_SESSION")}"}]]
+puzzle_input = Req.get!("https://adventofcode.com/2023/day/21/input", opts).body
+```
+
+```elixir
+input =
+  for {row, r} <- String.split(puzzle_input, "\n", trim: true) |> Enum.with_index(1),
+      {col, c} <- String.graphemes(row) |> Enum.with_index(1),
+      into: %{},
+      do: {{r, c}, col}
+```
+
+## Part 1
+
+```elixir
+{start, _v} = Enum.find(input, fn {_k, v} -> v == "S" end)
+```
+
+```elixir
+defmodule StepCounter do
+  def positions_count(init_position, grid, steps) do
+    {{size, size}, _} = Enum.max(grid)
+
+    for _i <- 1..steps, reduce: [init_position] do
+      acc -> StepCounter.step(acc, grid, size)
+    end
+    |> Enum.count()
+  end
+
+  def step(positions, grid, size) do
+    positions
+    |> Stream.flat_map(&adjacents/1)
+    |> Stream.reject(&is_rock?(&1, grid, size))
+    |> Enum.uniq()
+  end
+
+  defp adjacents({r, c}) do
+    [
+      {r + 1, c},
+      {r - 1, c},
+      {r, c + 1},
+      {r, c - 1}
+    ]
+  end
+
+  defp is_rock?({r, c}, grid, size) do
+    r = Integer.mod(r, size)
+    c = Integer.mod(c, size)
+    grid[{r, c}] == "#"
+  end
+end
+
+StepCounter.positions_count(start, input, 64)
+```
+
+## Part 2
+
+```elixir
+
+```
+
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F21.livemd)
+
+<!-- livebook:{"offset":1573,"stamp":{"token":"XCP.DwEtZFhjXfGeAK8DnMKR_bqhRIz35_yz_IiReaZiHY_bp7kburP8pKS-hqSVlWLbfiwfRQ-pJUbjCzkdv6TKSF5-G4jukYmUz6BtPhvIo-MijN6Ffas","version":2}} -->
