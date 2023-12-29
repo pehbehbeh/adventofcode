@@ -1,0 +1,124 @@
+<!-- livebook:{"file_entries":[{"name":"04.txt","type":"attachment"}]} -->
+
+# Advent of Code 2023 - Day 22
+
+```elixir
+Mix.install([
+  {:req, "~> 0.4.0"},
+  {:libgraph, "~> 0.16.0"}
+])
+```
+
+## Input
+
+```elixir
+opts = [headers: [{"cookie", "session=#{System.fetch_env!("LB_AOC_SESSION")}"}]]
+puzzle_input = Req.get!("https://adventofcode.com/2023/day/22/input", opts).body
+```
+
+```elixir
+input =
+  for row <- String.split(puzzle_input, "\n", trim: true) do
+    String.split(row, [",", "~"])
+    |> Enum.map(&String.to_integer/1)
+  end
+  |> Enum.sort_by(fn [_, _, z1, _, _, z2] -> min(z1, z2) end)
+  |> Enum.with_index()
+```
+
+```elixir
+defmodule SandSlabs do
+  def fall(falling, fallen, downs \\ %{}) do
+    case tick(falling, fallen, downs) do
+      {[], all_fallen, downs} -> {Enum.reverse(all_fallen), downs}
+      {still_falling, already_fallen, downs} -> fall(still_falling, already_fallen, downs)
+    end
+  end
+
+  defp tick([first | rest], fallen, downs) do
+    if is_fallen?(first, fallen) do
+      {rest, [first | fallen], downs}
+    else
+      {[down(first) | rest], fallen, inc(downs, first)}
+    end
+  end
+
+  defp inc(downs, {_, i}) do
+    Map.update(downs, i, 1, &(&1 + 1))
+  end
+
+  defp down({[x1, y1, z1, x2, y2, z2], i}) do
+    {[x1, y1, z1 - 1, x2, y2, z2 - 1], i}
+  end
+
+  defp is_fallen?({[_, _, z1, _, _, z2], _i}, _fallen) when z1 == 0 or z2 == 0 do
+    true
+  end
+
+  defp is_fallen?(a, fallen) do
+    Enum.any?(fallen, fn b -> touches?(a, b) end)
+  end
+
+  def touches?({[xa1, ya1, za1, xa2, ya2, za2], _}, {[xb1, yb1, zb1, xb2, yb2, zb2], _i}) do
+    (za1 == zb1 + 1 or za2 == zb2 + 1 or za1 == zb2 + 1 or za2 == zb1 + 1) and
+      (xa1 in xb1..xb2 or xa2 in xb1..xb2 or xb1 in xa1..xa2 or xb2 in xa1..xa2) and
+      (ya1 in yb1..yb2 or ya2 in yb1..yb2 or yb1 in ya1..ya2 or yb2 in ya1..ya2)
+  end
+end
+
+{fallen_bricks, _downs} = SandSlabs.fall(input, [])
+```
+
+## Part 1
+
+```elixir
+init_graph =
+  for {v, i} <- fallen_bricks, reduce: Graph.new() do
+    g -> Graph.add_vertex(g, {v, i})
+  end
+
+graph =
+  for {a, i} <- Graph.vertices(init_graph),
+      {b, j} <- Graph.vertices(init_graph),
+      a != b,
+      SandSlabs.touches?({b, j}, {a, i}),
+      reduce: init_graph do
+    g -> Graph.add_edge(g, {a, i}, {b, j})
+  end
+```
+
+```elixir
+graph
+|> Graph.vertices()
+|> Stream.filter(fn lower ->
+  to_upper = Graph.out_edges(graph, lower)
+
+  if length(to_upper) == 0 do
+    true
+  else
+    to_upper
+    |> Stream.map(fn %{v2: v2} -> Graph.in_edges(graph, v2) end)
+    |> Stream.map(&length/1)
+    |> Enum.all?(&(&1 > 1))
+  end
+end)
+|> Enum.count()
+```
+
+## Part 2
+
+```elixir
+0..length(fallen_bricks)
+|> Stream.map(fn i ->
+  fallen_bricks
+  |> List.pop_at(i)
+  |> then(fn {_, rest} -> rest end)
+  |> SandSlabs.fall([])
+  |> then(fn {_bricks, downs} -> Enum.count(downs) end)
+end)
+|> Enum.sum()
+```
+
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F22.livemd)
+
+<!-- livebook:{"offset":2986,"stamp":{"token":"XCP.wE03GxobHqPz3_5vCc-WPg2tLnfu37qkefhrJgri0gY4jBb7QIhzC7npIGPeyKHMnr1DacxfNsddCDNBe4WUnzfQSj85CbGQr3F5yjcQYmq5m1TLyyc","version":2}} -->
