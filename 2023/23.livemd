@@ -1,0 +1,114 @@
+<!-- livebook:{"file_entries":[{"name":"04.txt","type":"attachment"}]} -->
+
+# Advent of Code 2023 - Day 23
+
+```elixir
+Mix.install([
+  {:req, "~> 0.4.0"},
+  {:libgraph, "~> 0.16.0"}
+])
+```
+
+## Input
+
+```elixir
+opts = [headers: [{"cookie", "session=#{System.fetch_env!("LB_AOC_SESSION")}"}]]
+puzzle_input = Req.get!("https://adventofcode.com/2023/day/23/input", opts).body
+```
+
+```elixir
+input =
+  for {row, r} <- String.split(puzzle_input, "\n", trim: true) |> Enum.with_index(),
+      {col, c} <- String.graphemes(row) |> Enum.with_index(),
+      col != "#",
+      into: %{},
+      do: {{r, c}, col}
+```
+
+```elixir
+size = Map.keys(input) |> Enum.max() |> Tuple.to_list() |> Enum.max()
+```
+
+```elixir
+{start, "."} = Enum.find(input, nil, fn {{r, _c}, v} -> r == 0 and v == "." end)
+```
+
+```elixir
+{goal, "."} = Enum.find(input, nil, fn {{r, _c}, v} -> r == size and v == "." end)
+```
+
+```elixir
+defmodule ALongWalk do
+  def build_graph(g, grid, current, from, weight, seen, add_edge_fun) do
+    seen = [current | seen]
+
+    next(grid, current, seen)
+    |> do_build_graph(g, grid, current, from, weight, seen, add_edge_fun)
+  end
+
+  defp next(grid, {r, c}, seen) do
+    case grid[{r, c}] do
+      ">" -> [{r, c + 1}]
+      "v" -> [{r + 1, c}]
+      "." -> [{r, c + 1}, {r + 1, c}, {r, c - 1}, {r - 1, c}]
+    end
+    |> Enum.reject(&is_nil(grid[&1]))
+    |> Enum.reject(&Enum.member?(seen, &1))
+  end
+
+  defp do_build_graph([], g, _grid, current, from, weight, _seen, add_edge_fun) do
+    add_edge_fun.(g, from, current, weight: weight * -1)
+  end
+
+  defp do_build_graph([next], g, grid, _current, from, weight, seen, add_edge_fun) do
+    build_graph(g, grid, next, from, weight + 1, seen, add_edge_fun)
+  end
+
+  defp do_build_graph(nexts, g, grid, current, from, weight, seen, add_edge_fun) do
+    g = add_edge_fun.(g, from, current, weight: weight * -1)
+
+    Enum.reduce(nexts, g, fn next, acc ->
+      build_graph(acc, grid, next, current, 1, seen, add_edge_fun)
+    end)
+  end
+
+  def longest_path(g, from, to) do
+    g
+    |> Graph.get_paths(from, to)
+    |> Stream.map(&path_weight(&1, g))
+    |> Enum.max()
+  end
+
+  def path_weight(path, g) do
+    path
+    |> Stream.chunk_every(2, 1, :discard)
+    |> Stream.map(fn [v1, v2] -> Graph.edge(g, v1, v2) end)
+    |> Stream.map(fn %Graph.Edge{weight: weight} -> abs(weight) end)
+    |> Enum.sum()
+  end
+end
+```
+
+## Part 1
+
+```elixir
+Graph.new()
+|> ALongWalk.build_graph(input, start, start, 0, [], &Graph.add_edge/4)
+|> ALongWalk.longest_path(start, goal)
+```
+
+## Part 2
+
+```elixir
+Graph.new()
+|> ALongWalk.build_graph(input, start, start, 0, [], fn g, v1, v2, opts ->
+  g
+  |> Graph.add_edge(v1, v2, opts)
+  |> Graph.add_edge(v2, v1, opts)
+end)
+|> ALongWalk.longest_path(start, goal)
+```
+
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F23.livemd)
+
+<!-- livebook:{"offset":2916,"stamp":{"token":"XCP.cCYPhcJAIQmqSZrfT2SkMMuF-ziCV_rzpzHvWRb3KBiNm9AejW-0ZAbYIXP4iEyxZLw0wSaHTv5rdmCzU_ZivhyVO58uLmPqsMtNBWE63Y7Ab67p_Vg","version":2}} -->

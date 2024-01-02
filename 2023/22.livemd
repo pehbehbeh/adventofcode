@@ -121,4 +121,4 @@ end)
 
 [![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F22.livemd)
 
-<!-- livebook:{"offset":2986,"stamp":{"token":"XCP.wE03GxobHqPz3_5vCc-WPg2tLnfu37qkefhrJgri0gY4jBb7QIhzC7npIGPeyKHMnr1DacxfNsddCDNBe4WUnzfQSj85CbGQr3F5yjcQYmq5m1TLyyc","version":2}} -->
+<!-- livebook:{"offset":2986,"stamp":{"token":"XCP.II3bPW5KSBMrCjwlCaM4DiFWqewjdyfvsEkL3R_puUdwO9pUwofmVRy2Huif-3tG5oboKyhGkPgGjGU5Pezlnjgs9gwJIlVqA3J2LDDy5Jg-Zfz-p1E","version":2}} -->
