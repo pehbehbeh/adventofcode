@@ -1,0 +1,100 @@
+<!-- livebook:{"file_entries":[{"name":"04.txt","type":"attachment"}]} -->
+
+# Advent of Code 2023 - Day 24
+
+```elixir
+Mix.install([
+  {:req, "~> 0.4.0"}
+])
+```
+
+## Input
+
+```elixir
+opts = [headers: [{"cookie", "session=#{System.fetch_env!("LB_AOC_SESSION")}"}]]
+puzzle_input = Req.get!("https://adventofcode.com/2023/day/24/input", opts).body
+```
+
+```elixir
+input =
+  puzzle_input
+  |> String.split("\n", trim: true)
+  |> Enum.map(fn row ->
+    row
+    |> String.split([", ", " @ "])
+    |> Enum.map(&String.to_integer/1)
+    |> List.to_tuple()
+  end)
+```
+
+## Part 1
+
+```elixir
+defmodule Part1 do
+  def combinations([]), do: []
+  def combinations([head | tail]), do: Enum.map(tail, &{head, &1}) ++ combinations(tail)
+
+  def result({a, b}) do
+    if parallel?(a, b) do
+      {:parallel, {a, b}, {nil, nil}}
+    else
+      {x, y} = cross2d(a, b)
+
+      cond do
+        cross_outside?({x, y}) -> {:outside, {a, b}, {x, y}}
+        cross_past?({x, y}, a, b) -> {:past, {a, b}, {x, y}}
+        true -> {:inside, {a, b}, {x, y}}
+      end
+    end
+  end
+
+  defp parallel?({_, _, _, dx1, dy1, _}, {_, _, _, dx2, dy2, _}) do
+    dy1 / dx1 == dy2 / dx2
+  end
+
+  defp cross2d({x1, y1, _, dx1, dy1, _}, {x2, y2, _, dx2, dy2, _}) do
+    s1 = dy1 / dx1
+    s2 = dy2 / dx2
+
+    b1 = y1 - s1 * x1
+    b2 = y2 - s2 * x2
+    x = (b2 - b1) / (s1 - s2)
+    y = s1 * x + b1
+
+    {x, y}
+  end
+
+  @lower 200_000_000_000_000
+  @upper 400_000_000_000_000
+
+  defp cross_outside?({x, y}) do
+    Enum.any?([
+      @lower > x or x > @upper,
+      @lower > y or y > @upper
+    ])
+  end
+
+  def cross_past?({x, _y}, {x1, _, _, dx1, _, _}, {x2, _, _, dx2, _, _}) do
+    Enum.any?([
+      (x <= x1 or dx1 <= 0) and (x >= x1 or dx1 >= 0),
+      (x <= x2 or dx2 <= 0) and (x >= x2 or dx2 >= 0)
+    ])
+  end
+end
+
+input
+|> Part1.combinations()
+|> Stream.map(&Part1.result/1)
+|> Stream.filter(&(elem(&1, 0) == :inside))
+|> Enum.count()
+```
+
+## Part 2
+
+```elixir
+
+```
+
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F24.livemd)
+
+<!-- livebook:{"offset":2105,"stamp":{"token":"XCP.dDGJwWvZMSQ2nMjJOICbAgkG5cflRsE9j0LXdBKYVlYriuBJdFy_0lJ4_NQOsv9_ZO_2aOfgn-dz0-N43y8v39lOEJonJmZuykwjwMrBWXiye5WkF6Q","version":2}} -->
