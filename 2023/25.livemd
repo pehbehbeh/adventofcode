@@ -1,0 +1,107 @@
+<!-- livebook:{"file_entries":[{"name":"04.txt","type":"attachment"}]} -->
+
+# Advent of Code 2023 - Day 25
+
+```elixir
+Mix.install([
+  {:req, "~> 0.4.0"},
+  {:libgraph, "~> 0.16.0"}
+])
+```
+
+## Input
+
+```elixir
+opts = [headers: [{"cookie", "session=#{System.fetch_env!("LB_AOC_SESSION")}"}]]
+puzzle_input = Req.get!("https://adventofcode.com/2023/day/25/input", opts).body
+```
+
+```elixir
+input =
+  puzzle_input
+  |> String.split("\n", trim: true)
+  |> Enum.map(&String.split(&1, [": ", " "]))
+  |> Enum.map(fn [component | components] -> {component, components} end)
+  |> Enum.into(%{})
+```
+
+## Part 1
+
+```elixir
+graph =
+  for {v1, targets} <- input,
+      v2 <- targets,
+      reduce: Graph.new(type: :undirected) do
+    acc -> Graph.add_edge(acc, v1, v2)
+  end
+```
+
+```elixir
+defmodule Part1 do
+  def divide_in(g, size) do
+    [nil]
+    |> Stream.cycle()
+    |> Enum.reduce_while(%{}, fn _, top_wires ->
+      top_wires =
+        g
+        |> random_pair()
+        |> path_wires(g)
+        |> inc_frequencies(top_wires)
+
+      components =
+        top_wires
+        |> top_three()
+        |> then(&Graph.delete_edges(g, &1))
+        |> Graph.components()
+
+      case length(components) do
+        ^size -> {:halt, components}
+        _ -> {:cont, top_wires}
+      end
+    end)
+  end
+
+  defp random_pair(g) do
+    g
+    |> Graph.vertices()
+    |> Enum.take_random(2)
+    |> List.to_tuple()
+  end
+
+  defp path_wires({v1, v2}, g) do
+    g
+    |> Graph.get_shortest_path(v1, v2)
+    |> Stream.chunk_every(2, 1, :discard)
+    |> Enum.map(&List.to_tuple/1)
+  end
+
+  defp inc_frequencies(wires, top_wires) do
+    wires
+    |> Enum.reduce(top_wires, fn wire, f ->
+      Map.update(f, wire, 1, fn x -> x + 1 end)
+    end)
+  end
+
+  defp top_three(wires) do
+    wires
+    |> Enum.sort(fn {_k1, v1}, {_k2, v2} -> v1 > v2 end)
+    |> Stream.take(3)
+    |> Enum.map(&elem(&1, 0))
+  end
+end
+
+graph
+|> Part1.divide_in(2)
+|> Enum.map(&length/1)
+|> Enum.product()
+```
+
+## Part 2
+
+```elixir
+
+```
+
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2023%2F25.livemd)
+
+<!-- livebook:{"offset":2154,"stamp":{"token":"XCP.uteKPUQ82tDAlV9JuriioNgvd9px4HiHMI8v_BZMGD7uyZwUVBw2blivGTT3DNlGtklYu2-QKwc56UCRElDDJGfIjcUsUUzh-BbS5wfsrqugC43uFbk","version":2}} -->
