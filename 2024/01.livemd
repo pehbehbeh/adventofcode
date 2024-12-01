@@ -48,4 +48,6 @@ end)
 |> Enum.sum()
 ```
 
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2024%2F01.livemd)
+
 <!-- livebook:{"offset":797,"stamp":{"token":"XCP.BMJBmkWpwk-esgXRM5FjmWbTIAt0ln5wf1KLzI77dCtm-N4OGyD6wPfRBXZSPAohEBRWO90lmGuDEY12v-J6CghTHw2jH9tpx12mlr5YJWWbVvj356I","version":2}} -->
