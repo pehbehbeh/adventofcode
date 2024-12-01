@@ -1,0 +1,51 @@
+# Advent of Code 2024 - Day 01
+
+```elixir
+Mix.install([
+  {:req, "~> 0.5"}
+])
+```
+
+## Input
+
+```elixir
+opts = [headers: [{"cookie", "session=#{System.fetch_env!("LB_AOC_SESSION")}"}]]
+puzzle_input = Req.get!("https://adventofcode.com/2024/day/1/input", opts).body
+```
+
+```elixir
+{list_left, list_right} =
+  puzzle_input
+  |> String.split("\n", trim: true)
+  |> Enum.map(fn row ->
+    String.split(row)
+    |> Enum.map(&String.to_integer/1)
+    |> List.to_tuple()
+  end)
+  |> Enum.unzip()
+```
+
+## Part 1
+
+```elixir
+Enum.zip(
+  Enum.sort(list_left), 
+  Enum.sort(list_right)
+)
+|> Enum.map(fn {a, b} -> abs(a - b) end)
+|> Enum.sum()
+```
+
+## Part 2
+
+```elixir
+list_left
+|> Enum.map(fn pos_left ->
+  list_right
+  |> Enum.count(fn a -> a === pos_left end)
+  |> Kernel.*(pos_left)
+end)
+|> Enum.sum()
+```
+
+<!-- livebook:{"offset":797,"stamp":{"token":"XCP.BMJBmkWpwk-esgXRM5FjmWbTIAt0ln5wf1KLzI77dCtm-N4OGyD6wPfRBXZSPAohEBRWO90lmGuDEY12v-J6CghTHw2jH9tpx12mlr5YJWWbVvj356I","version":2}} -->
