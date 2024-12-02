@@ -1,0 +1,69 @@
+# Advent of Code 2024 - Day 02
+
+```elixir
+Mix.install([
+  {:req, "~> 0.5"}
+])
+```
+
+## Input
+
+```elixir
+opts = [headers: [{"cookie", "session=#{System.fetch_env!("LB_AOC_SESSION")}"}]]
+puzzle_input = Req.get!("https://adventofcode.com/2024/day/2/input", opts).body
+```
+
+```elixir
+reports = 
+  puzzle_input
+  |> String.split("\n", trim: true)
+  |> Enum.map(fn row ->
+    String.split(row)
+    |> Enum.map(&String.to_integer/1)
+  end)
+```
+
+## Helpers
+
+```elixir
+defmodule Helpers do
+  def ascending?([_]), do: true
+  def ascending?([a, b | rest]) when a < b and abs(a - b) <= 3, do: ascending?([b] ++ rest)
+  def ascending?(_), do: false
+
+  def descending?([_]), do: true
+  def descending?([a, b | rest]) when a > b and abs(a - b) <= 3, do: descending?([b] ++ rest)
+  def descending?(_), do: false
+
+  def safe?(report), do: ascending?(report) or descending?(report)
+end
+```
+
+## Part 1
+
+```elixir
+reports
+|> Stream.map(&Helpers.safe?/1)
+|> Enum.frequencies()
+```
+
+## Part 2
+
+```elixir
+reports
+|> Stream.map(fn report ->
+  report
+  |> Stream.with_index()
+  |> Stream.map(fn {_level, index} ->
+    report
+    |> List.delete_at(index)
+    |> Helpers.safe?()
+  end)
+  |> Enum.any?()
+end)
+|> Enum.frequencies()
+```
+
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2024%2F02.livemd)
+
+<!-- livebook:{"offset":1383,"stamp":{"token":"XCP.zGeG511rYrl-B3GprcPMvrhNouPbp-0M4-g1olAswV_CJoIUGR5mSCAg93PYOkQYUwsjZTT7Rcz_vb9qLeTlFKujfi7159SHiAKIuIItYGgN6moukIo","version":2}} -->
