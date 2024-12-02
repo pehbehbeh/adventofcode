@@ -39,15 +39,15 @@ Enum.zip(
 ## Part 2
 
 ```elixir
-list_left
-|> Enum.map(fn pos_left ->
-  list_right
-  |> Enum.count(fn a -> a === pos_left end)
-  |> Kernel.*(pos_left)
+frequencies = Enum.frequencies(list_right)
+```
+
+```elixir
+Enum.reduce(list_left, 0, fn a, acc ->
+  acc + a * Map.get(frequencies, a, 0)
 end)
-|> Enum.sum()
 ```
 
 [![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2024%2F01.livemd)
 
-<!-- livebook:{"offset":797,"stamp":{"token":"XCP.BMJBmkWpwk-esgXRM5FjmWbTIAt0ln5wf1KLzI77dCtm-N4OGyD6wPfRBXZSPAohEBRWO90lmGuDEY12v-J6CghTHw2jH9tpx12mlr5YJWWbVvj356I","version":2}} -->
+<!-- livebook:{"offset":978,"stamp":{"token":"XCP.IJ3cF5FAnxJRBUQnXfkWdT-LfAZB2UOaOhdH1Y75o4bgTZ-Pw1F1qtJaqNsr6SrVRcXAxVP_r5qwyy2X55N70UxEUXBiT6rbX-4sj3pzpzzPP0x36Rk","version":2}} -->
