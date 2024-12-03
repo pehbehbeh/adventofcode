@@ -1,0 +1,73 @@
+# Advent of Code 2024 - Day 03
+
+```elixir
+Mix.install([
+  {:req, "~> 0.5"},
+  {:nimble_parsec, "~> 1.4"}
+])
+```
+
+## Input
+
+```elixir
+opts = [headers: [{"cookie", "session=#{System.fetch_env!("LB_AOC_SESSION")}"}]]
+puzzle_input = Req.get!("https://adventofcode.com/2024/day/3/input", opts).body
+```
+
+## Parser
+
+```elixir
+defmodule Parser do
+  import NimbleParsec
+
+  mul = 
+    ignore(string("mul("))
+    |> integer(min: 1, max: 3)
+    |> ignore(string(","))
+    |> integer(min: 1, max: 3)
+    |> ignore(string(")"))
+    |> wrap()
+
+  defparsec :parse_part1,
+    mul
+    |> eventually()
+    |> repeat()
+
+  defparsec :parse_part2,
+    choice([
+      mul,
+      string("do()") |> replace(:do),
+      string("don't()") |> replace(:dont)
+    ])
+    |> eventually()
+    |> repeat()
+end
+```
+
+## Part 1
+
+```elixir
+puzzle_input
+|> Parser.parse_part1()
+|> then(fn {:ok, result, _, _, _, _} -> result end)
+|> Enum.reduce(0, fn [a, b], sum -> sum + a * b end)
+```
+
+## Part 2
+
+```elixir
+puzzle_input
+|> Parser.parse_part2()
+|> then(fn {:ok, result, _, _, _, _} -> result end)
+|> Enum.reduce({:do, 0}, fn
+  :do, {_, sum} -> {:do, sum}
+  :dont, {_, sum} -> {:dont, sum}
+  [a, b], {:do, sum} -> {:do, sum + a * b}
+  [_a, _b], {:dont, _sum} = acc -> acc
+end)
+|> then(fn {_current, sum} -> sum end)
+```
+
+[![Run in Livebook](https://livebook.dev/badge/v1/blue.svg)](https://livebook.dev/run?url=https%3A%2F%2Fgithub.com%2Fpehbehbeh%2Fadventofcode%2Fblob%2Fmain%2F2024%2F03.livemd)
+
+<!-- livebook:{"offset":1460,"stamp":{"token":"XCP.OxzN1FI6RurkiT1kivP0HNZnFkrFatBhSAIaeWuEs7L_kyU8r_3T3WqnOqbr2mKiHFaNaIHZg_OMxj8ZWB1I67UsVfmoGn9yxCq4BncFlMC14XIRrrE","version":2}} -->
